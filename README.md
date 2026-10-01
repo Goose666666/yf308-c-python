@@ -10,6 +10,10 @@
 
 **C 语言入门 · 动手实践**：12 章，24 道练习。从编译第一个程序到写完一个成绩管理系统，覆盖指针、结构体、动态内存、文件读写和多文件编译。
 
+## 讲义和实战并列看
+
+宽屏（1000 像素以上）时，点侧栏的「并列」，或者把「实战」按钮拖到右半边松手，讲义在左、练习在右，两栏各自滚动。中间的竖条可以左右拖，双击恢复一半一半；宽度和是否并列都记在本机，刷新后保留。并列时换章两栏一起换，讲义里点「送到实战里运行」直接在右栏跑，不会把讲义切走。点实战栏右上角的 × 退出。
+
 ## 代码在哪里跑
 
 | | Python | C |
@@ -36,6 +40,7 @@ python/             Python 课页面、讲义数据、页面图、PDF、判题�
 c/                  C 课页面与课程数据（含判题规则）
 assets/runner.js    统一运行入口，两门课共用
 assets/pyworker.js  Pyodide Worker
+assets/split.js     讲义和实战并列
 assets/clang/       C 编译器 Worker、内核和压缩好的 wasm 文件，第三方许可见 NOTICE.md
 _build/             测试
 ```
@@ -49,6 +54,7 @@ python -m http.server 8811
 pip install playwright && playwright install chromium
 python _build/test_answers.py                    # 两门课 48 道参考答案在浏览器里跑，判定要全过
 python _build/test_answers.py http://127.0.0.1:8811 c        # 只测 C
+python _build/test_split.py                      # 并列功能的界面测试
 ```
 
 jsDelivr 连不上时，用环境变量 `PROXY=http://127.0.0.1:端口` 让测试浏览器走代理。
