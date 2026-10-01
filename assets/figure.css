@@ -1,0 +1,3 @@
+/* 核心段和关键术语的配色，跟着主题走。 */
+:root{ --fig:#30385c; --fig-soft:rgba(48,56,92,.07) }
+:root[data-theme=dark]{ --fig:#9fb0e8; --fig-soft:rgba(159,176,232,.10) }

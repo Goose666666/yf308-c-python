@@ -1,0 +1,6 @@
+__pycache__/
+*.pyc
+_build/*.png
+_build/**/*.png
+_build/*.log
+.DS_Store

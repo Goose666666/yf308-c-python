@@ -1,0 +1,577 @@
+{
+ "chapters": [
+  {
+   "n": 6,
+   "title": "结构体",
+   "sections": [
+    {
+     "h": "6.1 先做一个通讯录",
+     "body": "一个联系人有姓名、电话、年龄三样东西。用三个平行数组分开存也能做，但改一条记录要同时改三个地方，一不小心就错位。结构体把它们捆成一个整体，一条记录就是一个变量。\n\n先把下面这段跑起来。\n\n```c\n#include <stdio.h>\n#include <string.h>\n\nstruct Contact {\n    char name[20];\n    char phone[16];\n    int  age;\n};\n\nint main(void) {\n    struct Contact book[3];\n\n    strcpy(book[0].name, \"张伟\");\n    strcpy(book[0].phone, \"13800138000\");\n    book[0].age = 28;\n\n    strcpy(book[1].name, \"李娜\");\n    strcpy(book[1].phone, \"13900139000\");\n    book[1].age = 34;\n\n    strcpy(book[2].name, \"王强\");\n    strcpy(book[2].phone, \"13700137000\");\n    book[2].age = 22;\n\n    printf(\"姓名 电话 年龄\\n\");\n    for (int i = 0; i < 3; i++) {\n        printf(\"%s %s %d\\n\", book[i].name, book[i].phone, book[i].age);\n    }\n    return 0;\n}\n```\n\n编译运行的命令还是这一条：\n\n```\ngcc -std=c17 -O0 -Wall -Wextra -o prog prog.c -lm\n./prog\n```\n\n屏幕上出来一张三行的表。关键在 `book[i]`：下标一变，姓名、电话、年龄三个字段一起跟着变，不会串行。下面把这里面的每一步拆开讲。"
+    },
+    {
+     "h": "6.2 结构体是一个新类型",
+     "body": "`struct Contact { ... };` 这句话只是定义了一个新类型，不产生变量，也不占内存。它告诉编译器：以后凡是叫 `struct Contact` 的东西，里面装着一个 20 字节的名字、一个 16 字节的电话和一个整数。\n\n三件事要记住。\n\n- 末尾的分号不能少。漏掉分号时编译器往往把错误报在下一行，看着莫名其妙，先回头检查上一个结构体定义。\n- 类型名是两个词 `struct Contact`，不是 `Contact`。想写成一个词要先用 typedef，见 6.5。\n- 定义通常放在所有函数外面，这样整个文件都能用。\n\n成员在内存里挨着放，所以一条记录的大小大致等于各成员之和。自己量一下：\n\n```c\n#include <stdio.h>\n\nstruct Contact {\n    char name[20];\n    char phone[16];\n    int  age;\n};\n\nint main(void) {\n    struct Contact a;\n    printf(\"一条记录 %zu 字节\\n\", sizeof a);\n    printf(\"成员加起来 %zu 字节\\n\", sizeof a.name + sizeof a.phone + sizeof a.age);\n    return 0;\n}\n```\n\n这里两个数相等，都是 40。换一个成员顺序就不一定相等了，编译器为了让 int 落在 4 的整数倍地址上，会在成员之间插几个空字节。所以算内存永远用 sizeof，不要自己把成员大小加起来。"
+    },
+    {
+     "h": "6.3 用点号访问成员",
+     "body": "取值和赋值都用点号，写法是变量名加点加成员名。\n\n数字成员可以直接用等号赋值，字符数组不行：\n\n```c\na.age = 28;              // 可以\na.name = \"张伟\";          // 编译报错，数组名不能被赋值\nstrcpy(a.name, \"张伟\");   // 这才是对的\n```\n\n原因第五章讲过：数组名不是一个能被赋值的变量，它代表一块固定的地方。往里面放字符串只能一个字节一个字节拷进去，这件事 strcpy 替你做了。\n\n定义变量的时候可以一次性给初值，按成员顺序写在花括号里：\n\n```c\nstruct Contact a = {\"张伟\", \"13800138000\", 28};\n```\n\n也可以指名道姓，不用管顺序：\n\n```c\nstruct Contact b = {.name = \"李娜\", .age = 34};\n```\n\n第二种写法没提到的成员会自动清零，字符串成员变成空串。字段多的时候这种写法更不容易错位。\n\n注意这只在定义变量的那一行有效。变量已经存在之后，不能再写 `a = {\"张伟\", ...}`。"
+    },
+    {
+     "h": "6.4 结构体数组",
+     "body": "结构体和普通类型一样能组成数组，一个数组就是一整本通讯录。定义时把每条记录各用一对花括号括起来：\n\n```c\nstruct Contact book[3] = {\n    {\"张伟\", \"13800138000\", 28},\n    {\"李娜\", \"13900139000\", 34},\n    {\"王强\", \"13700137000\", 22},\n};\n```\n\n遍历就是普通的 for 循环，先取到第 i 条记录，再取它的成员。按姓名查找的完整程序：\n\n```c\n#include <stdio.h>\n#include <string.h>\n\nstruct Contact {\n    char name[20];\n    char phone[16];\n    int  age;\n};\n\nint find(struct Contact book[], int n, const char *name) {\n    for (int i = 0; i < n; i++) {\n        if (strcmp(book[i].name, name) == 0) return i;\n    }\n    return -1;\n}\n\nint main(void) {\n    struct Contact book[3] = {\n        {\"张伟\", \"13800138000\", 28},\n        {\"李娜\", \"13900139000\", 34},\n        {\"王强\", \"13700137000\", 22},\n    };\n\n    int k = find(book, 3, \"李娜\");\n    if (k >= 0) {\n        printf(\"找到了，%s 的电话是 %s\\n\", book[k].name, book[k].phone);\n    } else {\n        printf(\"没找到\\n\");\n    }\n    return 0;\n}\n```\n\n两个细节。第一，找不到时返回 -1，调用方必须先判一下再用，直接拿 -1 当下标就越界了。第二，数组作参数传的是首地址，函数里不知道有多少条，所以必须额外传一个 n 进去。"
+    },
+    {
+     "h": "6.5 typedef 让名字短一点",
+     "body": "每次都写 `struct Contact` 太啰嗦。typedef 给类型起个别名，之后写一个词就行：\n\n```c\ntypedef struct {\n    char name[20];\n    char phone[16];\n    int  age;\n} Contact;\n\nContact a;\nContact book[100];\n```\n\n本课程后面都用这种写法。\n\n有一个例外：结构体里要放指向自己的指针时，必须保留标签名，因为花括号还没结束，别名 Contact 还不存在。\n\n```c\ntypedef struct Node {\n    int value;\n    struct Node *next;\n} Node;\n```\n\n链表就是这么串起来的，第七章会用到。\n\ntypedef 只是换个名字，不改变任何行为。`Contact` 和 `struct Contact` 在编译器眼里完全一样。"
+    },
+    {
+     "h": "6.6 结构体当参数是整份复制",
+     "body": "把结构体传进函数，传进去的是一份复制品，函数里怎么改都影响不到原件。想改原件就传指针。\n\n```c\n#include <stdio.h>\n\ntypedef struct {\n    char name[20];\n    int  age;\n} Contact;\n\nvoid birthday_copy(Contact c) { c.age++; }\nvoid birthday_real(Contact *c) { c->age++; }\n\nint main(void) {\n    Contact a = {\"张伟\", 28};\n\n    birthday_copy(a);\n    printf(\"传值之后 %d\\n\", a.age);\n\n    birthday_real(&a);\n    printf(\"传指针之后 %d\\n\", a.age);\n    return 0;\n}\n```\n\n输出是 28 和 29。第一次调用改的是副本，函数一返回副本就没了。\n\n通过指针访问成员用箭头，`c->age` 是 `(*c).age` 的简写。两种都对，箭头更常用。\n\n除了能改原件，传指针还省时间。一条记录 40 字节，每次调用都复制一遍并不划算，记录再大一些差别更明显。所以工程里的习惯是结构体一律传指针，只读的加上 const：\n\n```c\nvoid print_contact(const Contact *c) {\n    printf(\"%s %d\\n\", c->name, c->age);\n}\n```\n\n加了 const，函数里再想改成员编译器会直接报错，等于给自己上了一道保险。"
+    },
+    {
+     "h": "6.7 小结",
+     "body": "这一章把散着的几个变量捆成了一条记录。\n\n| 写法 | 作用 |\n|---|---|\n| `struct 名字 { 成员; };` | 定义类型，末尾分号不能少 |\n| `typedef struct { ... } 别名;` | 定义类型并起个短名字 |\n| `a.成员` | 通过变量访问成员 |\n| `p->成员` | 通过指针访问成员 |\n| `{值1, 值2}` | 定义时按顺序给初值 |\n| `{.成员 = 值}` | 定义时指名给初值，其余清零 |\n| `sizeof a` | 量一条记录多大，别自己加 |\n\n三个容易踩的地方：结构体定义后面漏分号；给字符数组成员用等号赋值；传值进函数却指望能改到原件。\n\n现在通讯录的容量还是写死的，`book[3]` 就只能放三条。下一章用 malloc 让它想放多少放多少。"
+    }
+   ]
+  },
+  {
+   "n": 7,
+   "title": "动态内存",
+   "sections": [
+    {
+     "h": "7.1 让通讯录装任意多条",
+     "body": "上一章的 `Contact book[3]` 写死了只能放三条。想放一百条就得改代码重编译，放少了浪费，放多了不够用。动态内存让程序在运行时决定要多大空间。\n\n下面这段先要 2 条的空间，装满了就翻倍，最后装下 5 条。\n\n```c\n#include <stdio.h>\n#include <stdlib.h>\n#include <string.h>\n\ntypedef struct {\n    char name[20];\n    char phone[16];\n    int  age;\n} Contact;\n\nint main(void) {\n    int cap = 2, n = 0;\n    Contact *book = malloc(cap * sizeof *book);\n    if (book == NULL) {\n        printf(\"内存不够\\n\");\n        return 1;\n    }\n\n    const char *names[] = {\"张伟\", \"李娜\", \"王强\", \"赵敏\", \"陈杰\"};\n    for (int i = 0; i < 5; i++) {\n        if (n == cap) {\n            cap *= 2;\n            Contact *bigger = realloc(book, cap * sizeof *book);\n            if (bigger == NULL) { free(book); return 1; }\n            book = bigger;\n            printf(\"扩容到 %d 条\\n\", cap);\n        }\n        strcpy(book[n].name, names[i]);\n        strcpy(book[n].phone, \"13800138000\");\n        book[n].age = 20 + i;\n        n++;\n    }\n\n    for (int i = 0; i < n; i++) {\n        printf(\"%s %d\\n\", book[i].name, book[i].age);\n    }\n\n    free(book);\n    return 0;\n}\n```\n\n输出里会看到两次扩容，从 2 到 4 再到 8，然后是五条记录。`book` 是一个指针，指向一块运行时申请来的内存，但用起来和数组一模一样，照样写 `book[i].name`。下面把 malloc、realloc、free 三件事分开说。"
+    },
+    {
+     "h": "7.2 malloc 要多少字节自己算",
+     "body": "malloc 的参数是字节数，不是元素个数。要装 n 个 Contact 就写 `n * sizeof(Contact)`。\n\n推荐这种写法：\n\n```c\nContact *book = malloc(n * sizeof *book);\n```\n\n`sizeof *book` 就是一个 Contact 的大小。好处是以后把 book 换成别的类型，这一行不用改，也就不会出现类型和大小对不上的错。\n\n三件必须知道的事。\n\n- malloc 返回 `void *`，在 C 里直接赋给任何指针类型都行，不用强制转换。写了转换反而可能盖住忘记 include stdlib.h 的错误。\n- **申请失败返回 NULL，必须检查**。不检查就往里写，程序当场崩，而且崩的位置离真正的错误很远，难查。\n- malloc 给的内存里装的是垃圾数据，不是 0。要清零就用 calloc：`calloc(n, sizeof *book)`，参数是个数和单个大小两个，它会把整块填成 0。\n\n申请到的这块内存叫堆内存。它和函数里的局部变量不一样，函数返回了它也还在，直到你自己 free。这正是它有用的地方，也是它麻烦的地方。"
+    },
+    {
+     "h": "7.3 free 和内存泄漏",
+     "body": "每一个 malloc 都要有一个对应的 free，一次，不多不少。\n\n```c\nfree(book);\nbook = NULL;\n```\n\nfree 之后把指针置成 NULL 是个好习惯。原因是 free 只是把内存还给系统，指针里的地址值一点没变，还指着那块已经不属于你的地方。这种指针叫悬空指针，再用它读写就是未定义行为，可能读出乱码，可能崩溃，也可能什么事都没有直到某天突然出问题。置成 NULL 之后再误用会立刻崩在出事的那一行，反而好查。\n\n三种典型错误：\n\n| 错误 | 后果 |\n|---|---|\n| 申请了不 free | 内存泄漏，程序跑得越久占得越多 |\n| 同一块 free 两次 | 未定义行为，常见表现是直接崩溃 |\n| free 之后继续用 | 未定义行为，数据可能已经被别人覆盖 |\n\n短命的小程序泄漏一点无所谓，进程退出时系统会全部收回。但长期运行的服务泄漏一天就能把内存吃光，所以养成习惯：写下 malloc 的同时就把 free 写好。\n\n想确认有没有泄漏，用地址检查器重新编译一遍：\n\n```\ngcc -std=c17 -g -fsanitize=address -o prog prog.c\n./prog\n```\n\n有泄漏或者越界，程序会在退出时打印一份报告，指出是哪一行申请的内存没还。"
+    },
+    {
+     "h": "7.4 realloc 换一块更大的",
+     "body": "realloc 把已有的一块内存换成新大小，原来的数据会保留。\n\n```c\nContact *bigger = realloc(book, cap * sizeof *book);\nif (bigger == NULL) { free(book); return 1; }\nbook = bigger;\n```\n\n必须用一个新指针接返回值，不能写成 `book = realloc(book, ...)`。因为 realloc 失败时返回 NULL 而原来那块内存还在，如果直接赋给 book，原地址就丢了，那块内存再也 free 不掉。\n\nrealloc 可能把数据搬到别的地方，返回的地址和原来不一定相同。所以调用之后，所有指向老地址的指针全部作废，只能用返回的新地址。\n\n扩容策略一般是翻倍，不是每次加一。翻倍的话，装 n 个元素总共只搬几次；每次加一的话每加一个都可能搬一次，数据量大了明显变慢。\n\nrealloc 还有两个特殊用法：第一个参数传 NULL 等于 malloc，新大小传 0 等于 free。知道就行，平时分开写更清楚。"
+    },
+    {
+     "h": "7.5 越界和忘记留结束符",
+     "body": "动态内存最常出的两类事故，都是往边界外面写。\n\n第一类是下标越界。malloc 申请了 n 个元素，合法下标就是 0 到 n-1。写 `book[n]` 编译器不会报错，运行时也不一定崩，但你已经踩到了别人的内存上。C 不做边界检查，这件事只能靠自己守。\n\n第二类是字符串少留一个字节。C 的字符串结尾必须有一个 `'\\0'`，它也占一个字节。所以复制一个长度 5 的字符串，要申请 6 字节：\n\n```c\n#include <stdio.h>\n#include <stdlib.h>\n#include <string.h>\n\nint main(void) {\n    const char *src = \"hello\";\n    char *dst = malloc(strlen(src) + 1);   // 加一是给 '\\0' 留的\n    if (dst == NULL) return 1;\n\n    strcpy(dst, src);\n    printf(\"%s 长度 %zu\\n\", dst, strlen(dst));\n\n    free(dst);\n    return 0;\n}\n```\n\n漏掉这个加一，strcpy 会把结束符写到第 6 个字节，正好越界一个。这种错误特别阴险，多数时候程序照跑不误，直到某次那一个字节恰好覆盖了要紧的东西。\n\n加 `-fsanitize=address` 编译能当场抓住这两类问题，写涉及指针的代码时值得顺手带上。"
+    },
+    {
+     "h": "7.6 一份自查清单",
+     "body": "写完一段带 malloc 的代码，照着过一遍：\n\n- malloc 的返回值检查 NULL 了吗\n- 申请的字节数是个数乘 sizeof 吗，字符串有没有加一\n- 每条返回路径上都 free 了吗，包括中途出错提前 return 的那条\n- realloc 用新指针接了吗，失败时老指针 free 了吗\n- free 之后还有没有代码用到这个指针\n- 下标的范围是不是 0 到 n-1\n\n第三条最容易漏。函数中间有好几个 `return -1`，很容易某一条忘了先 free。一个常用的写法是把出错处理集中到函数末尾：\n\n```c\nint work(void) {\n    int *a = malloc(100 * sizeof *a);\n    if (a == NULL) return -1;\n\n    int rc = -1;\n    if (/* 某个条件不满足 */ 0) goto done;\n    if (/* 另一个条件不满足 */ 0) goto done;\n    rc = 0;\n\ndone:\n    free(a);\n    return rc;\n}\n```\n\ngoto 在别处不建议用，但集中清理资源是它公认合适的场合，标准库和内核里到处都是这种写法。"
+    },
+    {
+     "h": "7.7 小结",
+     "body": "这一章让数据的大小由运行时决定。\n\n| 函数 | 作用 | 要点 |\n|---|---|---|\n| `malloc(字节数)` | 申请一块内存 | 内容是垃圾，返回值要查 NULL |\n| `calloc(个数, 单个大小)` | 申请并清零 | 两个参数，不是一个 |\n| `realloc(旧指针, 新字节数)` | 换成新大小 | 用新指针接，可能搬家 |\n| `free(指针)` | 还回去 | 一块只能还一次，之后置 NULL |\n\n记住这三条就能避开八成的坑：字节数用个数乘 sizeof，字符串再加一；返回值一律检查 NULL；malloc 和 free 成对写，写一个的时候就把另一个写好。\n\n现在通讯录能装任意多条，但程序一退出全没了。下一章把它存进文件。"
+    }
+   ]
+  },
+  {
+   "n": 8,
+   "title": "文件读写",
+   "sections": [
+    {
+     "h": "8.1 把通讯录存进文件",
+     "body": "程序一退出，内存里的数据就没了。要让通讯录下次还在，得写到文件里。\n\n下面这段先把三条记录写进 contacts.txt，再重新打开读回来。\n\n```c\n#include <stdio.h>\n\ntypedef struct {\n    char name[20];\n    char phone[16];\n    int  age;\n} Contact;\n\nint main(void) {\n    Contact book[3] = {\n        {\"张伟\", \"13800138000\", 28},\n        {\"李娜\", \"13900139000\", 34},\n        {\"王强\", \"13700137000\", 22},\n    };\n\n    FILE *fp = fopen(\"contacts.txt\", \"w\");\n    if (fp == NULL) {\n        printf(\"打不开文件\\n\");\n        return 1;\n    }\n    for (int i = 0; i < 3; i++) {\n        fprintf(fp, \"%s %s %d\\n\", book[i].name, book[i].phone, book[i].age);\n    }\n    fclose(fp);\n    printf(\"已写入 3 条\\n\");\n\n    Contact back[10];\n    int n = 0;\n    fp = fopen(\"contacts.txt\", \"r\");\n    if (fp == NULL) {\n        printf(\"打不开文件\\n\");\n        return 1;\n    }\n    while (n < 10 && fscanf(fp, \"%19s %15s %d\",\n                            back[n].name, back[n].phone, &back[n].age) == 3) {\n        n++;\n    }\n    fclose(fp);\n\n    printf(\"读回 %d 条\\n\", n);\n    for (int i = 0; i < n; i++) {\n        printf(\"%s %s %d\\n\", back[i].name, back[i].phone, back[i].age);\n    }\n    return 0;\n}\n```\n\n跑完当前目录会多出一个 contacts.txt，用文本编辑器能直接打开看。程序里的三步是固定套路：fopen 打开并检查，fprintf 或 fscanf 读写，fclose 关闭。下面逐个说。"
+    },
+    {
+     "h": "8.2 fopen 和它的模式",
+     "body": "fopen 有两个参数，文件名和模式，返回一个 `FILE *`。打不开时返回 NULL，必须检查，最常见的原因就是文件不存在或者路径写错。\n\n| 模式 | 含义 | 文件不存在时 | 文件已存在时 |\n|---|---|---|---|\n| `\"r\"` | 只读 | 返回 NULL | 从头开始读 |\n| `\"w\"` | 只写 | 新建 | 内容全部清空 |\n| `\"a\"` | 追加 | 新建 | 从末尾接着写 |\n| `\"r+\"` | 读写 | 返回 NULL | 从头开始 |\n| `\"w+\"` | 读写 | 新建 | 内容全部清空 |\n\n最要小心的是 `\"w\"`：只要打开成功，原文件的内容立刻没了，还没写一个字节就已经清空。想在已有内容后面加东西必须用 `\"a\"`。\n\n模式后面还能加一个 b 表示二进制，比如 `\"rb\"`。在 Linux 上加不加都一样，在 Windows 上不加 b 时换行符会被自动转换，读写二进制数据会出错。所以处理非文本数据时一律带上 b。\n\n用完一定要 fclose。它做两件事：把还在缓冲区里没落盘的数据写出去，然后释放这个 FILE 结构。忘了 fclose，写进去的东西可能根本没到硬盘上。\n\n路径用相对路径时，起点是程序运行时所在的目录，不是源文件所在的目录。写 `\"data/out.txt\"` 之前那个 data 目录必须已经存在，fopen 不会替你建目录。"
+    },
+    {
+     "h": "8.3 fprintf 和 fscanf",
+     "body": "这两个函数和 printf、scanf 长得一样，只是第一个参数换成了 `FILE *`。\n\n```c\nfprintf(fp, \"%s %s %d\\n\", name, phone, age);\nfscanf(fp, \"%19s %15s %d\", name, phone, &age);\n```\n\n写的时候格式随意，读的时候格式要能对上，否则读出来的是乱的。所以自己存自己读的文件，最好用固定分隔的简单格式，一行一条记录。\n\nfscanf 的返回值是成功读到的项数。上面那句要读三项，返回 3 才算这一行完整读到了。用它当循环条件，读不满就自然停下：\n\n```c\nwhile (fscanf(fp, \"%19s %15s %d\", name, phone, &age) == 3) {\n    // 处理这一条\n}\n```\n\n`%19s` 里的 19 限制最多读 19 个字符，加上结束符正好填满 `char name[20]`。不写这个数字，遇到超长的输入就会写出数组之外，这是 C 里最经典的一类漏洞。scanf 家族的 `%s` 一定要带长度限制。\n\nfscanf 的 `%s` 遇到空格就停。所以姓名里带空格的话，一个名字会被切成两半，后面全乱。这时要换成按行读。"
+    },
+    {
+     "h": "8.4 按行读用 fgets",
+     "body": "fgets 一次读一整行，空格照单全收。\n\n```c\nchar line[256];\nwhile (fgets(line, sizeof line, fp) != NULL) {\n    // line 里是一整行，末尾通常带着换行符\n}\n```\n\n三个要点。\n\n第一，第二个参数是缓冲区的总大小，包括结束符。写 `sizeof line` 就不会算错。fgets 最多读 size-1 个字符，一定会留位置放结束符，所以它不会越界，比 gets 安全。gets 已经被标准删掉，永远不要用。\n\n第二，读到的内容末尾带着换行符。要去掉的话：\n\n```c\nline[strcspn(line, \"\\n\")] = '\\0';\n```\n\nstrcspn 返回第一个换行符的位置，没有换行符就返回整行长度，两种情况这一句都对。\n\n第三，如果一行超过缓冲区，fgets 只读前面一段，剩下的下次再读，末尾就不带换行符。行可能很长时要判断一下有没有读到换行符。\n\n读进来的一整行再自己拆成字段，常用 sscanf，它和 fscanf 一样只是从字符串里读：\n\n```c\nint day, high, low;\nif (sscanf(line, \"%d,%d,%d\", &day, &high, &low) == 3) {\n    // 三项都读到了\n}\n```\n\n先 fgets 再 sscanf 是处理文本文件最稳的组合：一行读坏了只影响这一行，不会把后面全带乱。"
+    },
+    {
+     "h": "8.5 怎么判断读完了",
+     "body": "正确做法是把读操作本身当循环条件，别用 feof。\n\n```c\nwhile (fgets(line, sizeof line, fp) != NULL) { ... }     // 对\nwhile (fscanf(fp, \"%d\", &x) == 1) { ... }                // 对\nwhile (!feof(fp)) { fgets(...); ... }                    // 错\n```\n\n为什么第三种错：feof 不是预测下一次能不能读到，而是回答上一次读是不是撞到了文件末尾。读完最后一行时 feof 还是假，循环于是又进去一次，这次 fgets 失败但 line 里还是上一行的旧内容，结果最后一行被处理两遍。这是初学最常见的一个多输出一行的原因。\n\n读失败有两种可能，一是到了文件末尾，二是真出错了。想分清就在循环结束后查：\n\n```c\nif (ferror(fp)) {\n    printf(\"读文件出错\\n\");\n}\n```\n\n写文件同理，fprintf 返回写出的字符数，负数表示出错。日常小程序可以不查，但往关键数据里写的时候，至少检查一下 fclose 的返回值，它是 0 才算真的落盘成功。"
+    },
+    {
+     "h": "8.6 一次写一整条记录",
+     "body": "文本格式人能看懂，但存浮点数会丢精度，解析也慢。二进制格式把结构体原样搬进文件，用 fwrite 和 fread。\n\n```c\nFILE *fp = fopen(\"book.dat\", \"wb\");\nfwrite(book, sizeof(Contact), 3, fp);   // 写 3 条，每条 sizeof(Contact) 字节\nfclose(fp);\n\nfp = fopen(\"book.dat\", \"rb\");\nint n = (int)fread(back, sizeof(Contact), 10, fp);   // 最多读 10 条，返回实际读到几条\nfclose(fp);\n```\n\n两个函数的参数一样：数据地址、单条大小、条数、文件指针。返回值都是实际处理的条数，不是字节数。\n\n好处是快，而且不用写解析代码。代价有三个：文件用记事本打开是乱码；换一台机器可能读不出来，因为整数的字节顺序和结构体的对齐方式可能不同；结构体一旦改了字段，老文件全部作废。\n\n所以选哪种看用途。配置文件、日志、要给人看或者要跨机器传的数据用文本；程序自己临时存的大批数据用二进制。这门课后面都用文本，因为出问题时能直接打开文件看，好调试。"
+    },
+    {
+     "h": "8.7 小结",
+     "body": "这一章让数据活过了程序的一次运行。\n\n| 函数 | 作用 |\n|---|---|\n| `fopen(名字, 模式)` | 打开，失败返回 NULL |\n| `fclose(fp)` | 关闭并把缓冲区写出去 |\n| `fprintf(fp, ...)` | 按格式写一行 |\n| `fscanf(fp, ...)` | 按格式读，返回成功读到几项 |\n| `fgets(buf, size, fp)` | 读一整行，失败返回 NULL |\n| `sscanf(str, ...)` | 从字符串里按格式取字段 |\n| `fwrite / fread` | 按条读写二进制数据 |\n\n四个要点：`\"w\"` 会清空原文件；`%s` 一定要带长度限制；用读操作本身当循环条件，不要用 feof；相对路径的起点是程序运行的目录。\n\n到这里通讯录已经能存能读，代码也堆到几百行了。下一章把它拆成几个文件。"
+    }
+   ]
+  },
+  {
+   "n": 9,
+   "title": "多文件与编译",
+   "sections": [
+    {
+     "h": "9.1 把通讯录拆成三个文件",
+     "body": "通讯录写到现在已经好几百行，全挤在一个文件里，找函数要翻半天。按职责拆开：数据结构和函数声明放头文件，实现放一个源文件，主流程放另一个源文件。\n\ncontact.h 只写别人需要知道的东西：\n\n```c\n#ifndef CONTACT_H\n#define CONTACT_H\n\ntypedef struct {\n    char name[20];\n    char phone[16];\n    int  age;\n} Contact;\n\nint  contact_find(const Contact *book, int n, const char *name);\nvoid contact_print(const Contact *c);\n\n#endif\n```\n\ncontact.c 写实现：\n\n```c\n#include <stdio.h>\n#include <string.h>\n#include \"contact.h\"\n\nint contact_find(const Contact *book, int n, const char *name) {\n    for (int i = 0; i < n; i++) {\n        if (strcmp(book[i].name, name) == 0) return i;\n    }\n    return -1;\n}\n\nvoid contact_print(const Contact *c) {\n    printf(\"%s %s %d\\n\", c->name, c->phone, c->age);\n}\n```\n\nmain.c 只管流程：\n\n```c\n#include <stdio.h>\n#include \"contact.h\"\n\nint main(void) {\n    Contact book[2] = {\n        {\"张伟\", \"13800138000\", 28},\n        {\"李娜\", \"13900139000\", 34},\n    };\n    int k = contact_find(book, 2, \"李娜\");\n    if (k >= 0) contact_print(&book[k]);\n    return 0;\n}\n```\n\n编译时把两个 .c 都交给 gcc：\n\n```\ngcc -std=c17 -O0 -Wall -Wextra -o prog main.c contact.c -lm\n```\n\n注意 .h 文件不出现在命令里。头文件不参与编译，它是被 include 进来的，等于把内容原样贴到那一行。"
+    },
+    {
+     "h": "9.2 头文件里放什么",
+     "body": "头文件是一份对外的说明书，只放别人调用时必须知道的东西。\n\n放进去的：\n\n- 类型定义，struct、typedef、enum\n- 函数声明，就是函数头加分号\n- 宏定义\n- 用 extern 声明的全局变量\n\n不放的：\n\n- 函数的实现\n- 全局变量的定义\n\n原因是 include 等于复制粘贴。两个源文件都 include 了同一个头文件，如果里面有函数实现，那这个函数就被定义了两遍，链接时报 multiple definition。\n\n开头结尾那三行叫包含卫士：\n\n```c\n#ifndef CONTACT_H\n#define CONTACT_H\n// ... 内容 ...\n#endif\n```\n\n它防的是同一个文件里重复包含。a.h 包含 b.h，main.c 又同时包含了两个，b.h 的内容就会出现两遍，类型被定义两次照样报错。有了这三行，第二次进来时 CONTACT_H 已经定义过，中间整段直接跳过。名字按文件名起，全大写，保证唯一。\n\n现在的编译器也支持写一行 `#pragma once`，效果一样。它不是标准的一部分，但主流编译器都认。"
+    },
+    {
+     "h": "9.3 声明和定义的区别",
+     "body": "声明是告诉编译器有这么个东西，定义是真的把它造出来。\n\n函数的声明只有函数头加分号，定义带着函数体：\n\n```c\nint contact_find(const Contact *book, int n, const char *name);   // 声明\n\nint contact_find(const Contact *book, int n, const char *name) {  // 定义\n    ...\n}\n```\n\n编译 main.c 时，编译器只看得到 contact.h 里的声明。它据此知道这个函数收几个参数、返回什么类型，能生成一条调用指令，先在函数地址那里留个空。链接器再把这个空填上 contact.c 编出来的真实地址。\n\n同一个东西可以声明很多遍，只能定义一遍。\n\n全局变量同理。头文件里写：\n\n```c\nextern int contact_count;\n```\n\n某一个 .c 文件里写：\n\n```c\nint contact_count = 0;\n```\n\n带 extern 的是声明，不分配内存；不带的是定义，分配内存。反过来在头文件里直接写定义，每个包含它的源文件都会各造一份，链接时冲突。\n\n还有一个关键字 static。函数或全局变量前面加上 static，它就只在本文件内可见，别的文件看不到也用不了。文件内部的辅助函数都该加上 static，这样名字不会和别处撞车。"
+    },
+    {
+     "h": "9.4 从源码到可执行文件分四步",
+     "body": "gcc 一条命令背后有四个阶段，每一步都能单独停下来看。\n\n| 阶段 | 干什么 | 单独执行 | 产物 |\n|---|---|---|---|\n| 预处理 | 展开 include 和宏，删注释 | `gcc -E prog.c` | 展开后的源码 |\n| 编译 | 翻译成汇编 | `gcc -S prog.c` | prog.s |\n| 汇编 | 汇编变机器码 | `gcc -c prog.c` | prog.o |\n| 链接 | 把多个 .o 和库拼成程序 | `gcc a.o b.o -o prog` | prog |\n\n知道这四步，报错就好定位了。\n\n- 语法错误、类型不匹配、找不到头文件，都出在前两步，报错会指出具体文件和行号。\n- 找不到函数、名字定义了两遍，出在链接这一步，报错里没有行号，只有一个符号名。\n\n看到 undefined reference 就该想到链接，而不是回去找语法错。\n\n大项目通常先各自 `gcc -c` 编成 .o，最后一起链接。好处是改一个文件只用重新编那一个，别的 .o 直接复用。这也是 make 存在的理由。\n\n`-lm` 就是链接阶段的参数，告诉链接器还要把数学库拼进来。库要写在源文件后面，写前面在某些版本上会找不到。"
+    },
+    {
+     "h": "9.5 用 make 省掉重复命令",
+     "body": "文件一多，手敲编译命令又长又容易漏。make 读一个叫 Makefile 的文件，按里面写的规则自动编译，而且只重编改过的部分。\n\n```\nCC = gcc\nCFLAGS = -std=c17 -O0 -Wall -Wextra\nLDFLAGS = -lm\n\nprog: main.o contact.o\n\t$(CC) -o prog main.o contact.o $(LDFLAGS)\n\nmain.o: main.c contact.h\n\t$(CC) $(CFLAGS) -c main.c\n\ncontact.o: contact.c contact.h\n\t$(CC) $(CFLAGS) -c contact.c\n\nclean:\n\trm -f prog *.o\n```\n\n一条规则三部分：冒号左边是目标，右边是它依赖的文件，下一行缩进写生成命令。\n\n那个缩进必须是制表符，不能是空格。这是 make 最出名的坑，用空格会报 missing separator。编辑器里把制表符显示出来能省很多事。\n\nmake 的判断依据是修改时间。目标比依赖新就跳过，比依赖旧就重新生成。所以改了 contact.h，main.o 和 contact.o 都会重编，因为两条规则都把它列进了依赖。依赖漏写的话，改了头文件却没重编，会出现代码和程序对不上的怪事。\n\n常用命令：`make` 生成第一个目标，`make clean` 执行 clean 规则，`make -B` 强制全部重来。"
+    },
+    {
+     "h": "9.6 四种常见的编译链接错误",
+     "body": "按出现顺序排。\n\n**implicit declaration of function**。用了一个函数但编译器没见过它的声明，多半是忘了 include 对应的头文件，比如用了 malloc 却没 include stdlib.h。找到函数属于哪个头文件补上就行。\n\n**undefined reference to xxx**。链接阶段找不到这个函数的实现。三种原因：函数只声明没实现；实现所在的 .c 文件没写进编译命令；用了数学库却没加 -lm。注意函数名拼错也算这一类，因为编译器认为你在调用另一个函数。\n\n**multiple definition of xxx**。同一个东西定义了两遍。最常见的是把函数实现或者全局变量定义写进了头文件，被两个源文件各包含一次。改法是头文件里只留声明，实现挪到某一个 .c 里。\n\n**redefinition of xxx**。同一个源文件里类型或变量出现了两次，一般是头文件没加包含卫士，被间接包含了两遍。补上那三行就好。\n\n一个通用建议：一次只看第一条错误。C 的编译器在第一处出错后往往会连带报出几十条无关的错，改完第一条重新编译，后面很多会自己消失。"
+    },
+    {
+     "h": "9.7 小结",
+     "body": "这一章讲的是代码怎么组织，以及一行 gcc 命令背后发生了什么。\n\n- 头文件放声明，源文件放实现，头文件不进编译命令\n- 包含卫士防止同一个头文件被展开两遍\n- 声明可以有很多份，定义只能有一份\n- static 让函数和全局变量只在本文件可见\n- 编译分预处理、编译、汇编、链接四步，报错带行号的在前两步，只给符号名的在链接\n- Makefile 的命令行必须用制表符缩进\n\n拆文件的好处不在于代码变短，而在于改动的影响范围变小。改 contact.c 的内部实现，只要头文件没动，main.c 完全不用管。\n\n下一章回到单个文件，认识几个天天要用的标准库。"
+    }
+   ]
+  },
+  {
+   "n": 10,
+   "title": "常用标准库",
+   "sections": [
+    {
+     "h": "10.1 先做一个文本统计小工具",
+     "body": "C 自带的库不大，但天天要用的就那么几个头文件。这一章用一个统计小工具把它们串起来。\n\n先跑这段。\n\n```c\n#include <stdio.h>\n#include <string.h>\n#include <ctype.h>\n\nint main(void) {\n    char text[] = \"The C language is small. The C standard library is not.\";\n\n    printf(\"总长度 %zu\\n\", strlen(text));\n\n    int letters = 0, spaces = 0;\n    for (int i = 0; text[i] != '\\0'; i++) {\n        if (isalpha((unsigned char)text[i])) letters++;\n        else if (isspace((unsigned char)text[i])) spaces++;\n    }\n    printf(\"字母 %d 个 空格 %d 个\\n\", letters, spaces);\n\n    char copy[128];\n    snprintf(copy, sizeof copy, \"%s\", text);\n    for (int i = 0; copy[i] != '\\0'; i++) {\n        copy[i] = (char)tolower((unsigned char)copy[i]);\n    }\n\n    int words = 0;\n    char longest[32] = \"\";\n    char *p = strtok(copy, \" .,\");\n    while (p != NULL) {\n        words++;\n        if (strlen(p) > strlen(longest)) snprintf(longest, sizeof longest, \"%s\", p);\n        p = strtok(NULL, \" .,\");\n    }\n    printf(\"单词 %d 个 最长的是 %s\\n\", words, longest);\n\n    return 0;\n}\n```\n\n三行输出，一共用到了 strlen、isalpha、isspace、tolower、strtok、snprintf 六个库函数。下面按头文件分类讲。"
+    },
+    {
+     "h": "10.2 string.h 处理字符串",
+     "body": "这是用得最多的一个头文件。\n\n| 函数 | 作用 | 注意 |\n|---|---|---|\n| `strlen(s)` | 长度，不含结束符 | 返回 size_t，printf 用 %zu |\n| `strcpy(dst, src)` | 复制 | 不检查 dst 够不够大 |\n| `strncpy(dst, src, n)` | 最多复制 n 个字符 | 满了就不补结束符，容易出坑 |\n| `strcat(dst, src)` | 接在 dst 后面 | dst 要留够两段的空间 |\n| `strcmp(a, b)` | 比较 | 相等返回 0，不是返回 1 |\n| `strstr(s, sub)` | 找子串 | 返回位置指针，找不到返回 NULL |\n| `strchr(s, c)` | 找单个字符 | 同上 |\n| `strtok(s, seps)` | 按分隔符切词 | 会改原字符串 |\n| `memset(p, 0, n)` | 把 n 个字节填成某个值 | 常用来清零 |\n\n两个最容易出事的地方。\n\n第一，strcmp 相等时返回 0。所以判断两个字符串一样要写 `strcmp(a, b) == 0`，写成 `if (strcmp(a, b))` 意思正好反了。\n\n第二，strtok 会把原字符串里的分隔符改成结束符，原文就被破坏了。所以上一节先 snprintf 复制了一份再切。第一次调用传字符串，之后每次传 NULL 表示接着上次的位置往下切。\n\n想拼字符串又怕越界，用 snprintf 代替 strcpy 和 strcat：\n\n```c\nchar buf[32];\nsnprintf(buf, sizeof buf, \"%s-%s\", a, b);\n```\n\n它保证不会写出 buf 之外，也保证末尾有结束符，比 strcpy 加 strcat 稳得多。"
+    },
+    {
+     "h": "10.3 ctype.h 判断字符类型",
+     "body": "这一组函数判断单个字符是什么，名字都很直白。\n\n```c\nisalpha(c)   // 是不是字母\nisdigit(c)   // 是不是数字\nisalnum(c)   // 是不是字母或数字\nisspace(c)   // 是不是空格、制表符、换行\nispunct(c)   // 是不是标点\nisupper(c)   // 是不是大写\ntolower(c)   // 转成小写，不是字母就原样返回\ntoupper(c)   // 转成大写\n```\n\n传参数时要写成 `(unsigned char)c`。原因是 char 在多数平台上带符号，遇到中文这类高位为 1 的字节会变成负数，而这组函数的参数只允许非负值或者 EOF，传负数是未定义行为。加上这个转换就不会有问题。\n\n用它们扫一遍字符串是最常见的写法：\n\n```c\nint digits = 0;\nfor (int i = 0; s[i] != '\\0'; i++) {\n    if (isdigit((unsigned char)s[i])) digits++;\n}\n```\n\n整串转小写也是同样的循环，把结果写回去即可。注意 tolower 返回的是 int，赋回 char 数组时加一个 `(char)` 转换，否则 -Wconversion 之类的选项会报警告。"
+    },
+    {
+     "h": "10.4 stdlib.h 转换和通用工具",
+     "body": "除了第七章的 malloc 和 free，这个头文件还有几组常用的东西。\n\n字符串转数字：\n\n```c\nint   n = atoi(\"42\");          // 转不了就返回 0，分不清是失败还是真的 0\nlong  m = strtol(\"42\", NULL, 10);   // 更可靠，10 表示十进制\ndouble d = atof(\"3.14\");\n```\n\n要判断转换成不成功就用 strtol，它的第二个参数能告诉你停在了哪里：\n\n```c\nchar *end;\nlong v = strtol(s, &end, 10);\nif (end == s) {\n    printf(\"这不是个数字\\n\");\n}\n```\n\n排序用 qsort，它对任何类型都能排，代价是要自己写一个比较函数：\n\n```c\nint cmp_int(const void *a, const void *b) {\n    int x = *(const int *)a;\n    int y = *(const int *)b;\n    return (x > y) - (x < y);\n}\n\nqsort(arr, n, sizeof arr[0], cmp_int);\n```\n\n比较函数收两个 `const void *`，要先转成真实类型再解引用。返回负数表示第一个排前面，正数表示第二个排前面，0 表示相等。用 `(x > y) - (x < y)` 而不是 `x - y`，是因为两个很大的整数相减会溢出，结果符号可能反过来。\n\n随机数用 rand，范围是 0 到 RAND_MAX。程序开头调一次 `srand(time(NULL))` 换种子，否则每次运行出的是同一串数。time 在 time.h 里。\n\n另外 `abs` 求整数绝对值，`exit(0)` 直接结束程序，都在这里。"
+    },
+    {
+     "h": "10.5 math.h 和那个 -lm",
+     "body": "数学函数在 math.h，参数和返回值基本都是 double。\n\n```c\nsqrt(x)        // 平方根\npow(x, y)      // x 的 y 次方\nfabs(x)        // 浮点数绝对值，整数用 abs\nfloor(x)       // 向下取整\nceil(x)        // 向上取整\nround(x)       // 四舍五入\nfmod(x, y)     // 浮点取余，整数的 % 不能用于 double\nlog(x)         // 自然对数\nlog10(x)       // 常用对数\nsin cos tan    // 三角函数，参数是弧度\n```\n\n编译命令末尾的 `-lm` 就是为它准备的。数学库不在默认链接的库里，不加这个参数会报 undefined reference to sqrt。而且它必须写在源文件后面。\n\n一个完整例子，算一组数的标准差：\n\n```c\n#include <stdio.h>\n#include <math.h>\n\nint main(void) {\n    double a[5] = {2.0, 4.0, 4.0, 4.0, 6.0};\n    int n = 5;\n\n    double sum = 0.0;\n    for (int i = 0; i < n; i++) sum += a[i];\n    double mean = sum / n;\n\n    double var = 0.0;\n    for (int i = 0; i < n; i++) var += pow(a[i] - mean, 2);\n    var /= n;\n\n    printf(\"平均 %.2f 标准差 %.2f\\n\", mean, sqrt(var));\n    return 0;\n}\n```\n\n浮点数还有一件事要留心：不要用等号比较两个 double。`0.1 + 0.2 == 0.3` 是假的，因为二进制存不下这些小数。正确做法是看差的绝对值够不够小：\n\n```c\nif (fabs(x - y) < 1e-9) { /* 认为相等 */ }\n```"
+    },
+    {
+     "h": "10.6 怎么查一个函数怎么用",
+     "body": "标准库函数有一两百个，没必要背，会查就行。\n\n在 Linux 上直接用手册：\n\n```\nman 3 strtok\n```\n\n那个 3 表示查库函数这一册，不写的话可能查到同名的命令。手册里最该看的是三段：SYNOPSIS 给出头文件和函数原型，DESCRIPTION 说明行为，RETURN VALUE 说明返回什么以及失败时返回什么。\n\n在线的话 cppreference 上的 C 库参考最全，每个函数都有例子。\n\n自己看手册时重点确认四件事：\n\n- 要 include 哪个头文件\n- 参数里哪些是输入，哪些是输出，输出用的缓冲区要多大\n- 返回值怎么表示失败，是 NULL、负数还是 0\n- 会不会修改传进去的参数\n\n第四条最容易被忽略，strtok 改原串就是个例子。凡是参数不带 const 的指针，都要怀疑函数会往里写东西。\n\n另外有一批函数不该再用了，因为不检查缓冲区大小：gets 已从标准中删除，sprintf 和 strcpy 在拼接不可控的输入时不安全。换成 fgets 和 snprintf。"
+    },
+    {
+     "h": "10.7 小结",
+     "body": "这一章过了四个头文件。\n\n| 头文件 | 管什么 | 代表函数 |\n|---|---|---|\n| string.h | 字符串和内存块 | strlen strcpy strcmp strstr strtok memset |\n| ctype.h | 单个字符的类型判断 | isalpha isdigit isspace tolower |\n| stdlib.h | 转换、排序、随机、内存 | atoi strtol qsort rand malloc |\n| math.h | 数学运算 | sqrt pow fabs round，编译要加 -lm |\n\n四个反复要提醒的点：strcmp 相等返回 0；ctype 的参数要转 unsigned char；qsort 的比较函数用大于减小于，别用相减；double 不要用等号比较。\n\n下一章把前面所有东西合起来，写一个完整的程序。"
+    }
+   ]
+  },
+  {
+   "n": 11,
+   "title": "综合项目",
+   "sections": [
+    {
+     "h": "11.1 要做的事",
+     "body": "这一章写一个学生成绩管理程序，把前面十章的东西一次用上。\n\n要实现的功能：\n\n- 录入学生，学号、姓名、三科成绩\n- 条数不限，装满了自动扩容\n- 按学号查找\n- 按平均分从高到低排序\n- 统计班级平均分，找出最高分的学生，列出有不及格科目的人\n- 存进文件，再从文件读回来\n\n用到的知识对应关系：结构体来自第六章，动态数组来自第七章，文件读写来自第八章，qsort 来自第十章，剩下的是前五章的基本功。\n\n做法上先定数据结构，再一个功能一个功能加，每加一个就编译运行一次。不要一口气写完两百行再编译，那样一次报出几十个错，根本理不清。"
+    },
+    {
+     "h": "11.2 第一步，把数据结构定下来",
+     "body": "先想清楚存什么，再写代码。这一步花的时间最值。\n\n一名学生：\n\n```c\ntypedef struct {\n    int    id;\n    char   name[20];\n    double chinese;\n    double math;\n    double english;\n} Student;\n```\n\n三科分开存而不是用一个 `double score[3]`，是因为后面要按科目名输出，分开写更直白。要是科目数会变，就该用数组加一个科目名表。\n\n平均分不存进结构体，用的时候算：\n\n```c\ndouble avg_of(const Student *s) {\n    return (s->chinese + s->math + s->english) / 3.0;\n}\n```\n\n理由是任何能算出来的字段都不该存。存了就有两份真相，改了成绩忘了更新平均分，两边就对不上了。\n\n一个班：\n\n```c\ntypedef struct {\n    Student *data;   // 堆上的数组\n    int      n;      // 已经放了几个\n    int      cap;    // 一共能放几个\n} Roster;\n```\n\n把指针、个数、容量三样捆在一起，是动态数组的标准写法。以后所有函数只要收一个 `Roster *`，不用再传三个参数，也不会出现个数和数组对不上的情况。"
+    },
+    {
+     "h": "11.3 第二步，增加和查找",
+     "body": "容器的生命周期从初始化开始，到释放结束，中间是增删查改。\n\n```c\nvoid roster_init(Roster *r) {\n    r->data = NULL;\n    r->n = 0;\n    r->cap = 0;\n}\n\nvoid roster_free(Roster *r) {\n    free(r->data);\n    r->data = NULL;\n    r->n = 0;\n    r->cap = 0;\n}\n```\n\n初始时指针给 NULL，容量给 0。这样 roster_add 里不用特判第一次，因为 `realloc(NULL, size)` 等价于 malloc。\n\n```c\nint roster_add(Roster *r, Student s) {\n    if (r->n == r->cap) {\n        int cap = (r->cap == 0) ? 4 : r->cap * 2;\n        Student *bigger = realloc(r->data, (size_t)cap * sizeof *bigger);\n        if (bigger == NULL) return -1;\n        r->data = bigger;\n        r->cap = cap;\n    }\n    r->data[r->n++] = s;\n    return 0;\n}\n```\n\n返回 0 表示成功，-1 表示内存不够。调用方该判一下，虽然小程序里基本不会失败。\n\n查找按学号，找不到返回 -1：\n\n```c\nint roster_find(const Roster *r, int id) {\n    for (int i = 0; i < r->n; i++) {\n        if (r->data[i].id == id) return i;\n    }\n    return -1;\n}\n```\n\n返回下标而不是返回指针，是因为下标在数组扩容后还有效，指针会失效。这一点在第七章说过，realloc 可能搬家。"
+    },
+    {
+     "h": "11.4 第三步，排序和统计",
+     "body": "排序直接用 qsort，自己写一个按平均分降序的比较函数。\n\n```c\nstatic int by_avg_desc(const void *a, const void *b) {\n    double x = avg_of((const Student *)a);\n    double y = avg_of((const Student *)b);\n    return (y > x) - (y < x);\n}\n\nqsort(r.data, (size_t)r.n, sizeof r.data[0], by_avg_desc);\n```\n\n比较函数收到的两个指针直接指向 Student，因为数组元素本身就是 Student。降序就是把 x 和 y 的位置反过来写。\n\n统计部分只是几个循环：\n\n```c\ndouble total = 0.0;\nint best = 0, fail = 0;\nfor (int i = 0; i < r.n; i++) {\n    total += avg_of(&r.data[i]);\n    if (avg_of(&r.data[i]) > avg_of(&r.data[best])) best = i;\n    if (r.data[i].chinese < 60 || r.data[i].math < 60 || r.data[i].english < 60) fail++;\n}\nprintf(\"班级平均 %.2f\\n\", total / r.n);\n```\n\n`r.n` 为 0 时这里会除以零，实际程序要先判一下空。\n\n一个建议：统计和输出分开。统计函数只算数不打印，打印交给另一个函数。这样以后想把结果写进文件而不是屏幕，只改打印那一处。"
+    },
+    {
+     "h": "11.5 第四步，存盘和读盘",
+     "body": "格式选一行一条，字段用空格分开，姓名不含空格。\n\n```c\nint roster_save(const Roster *r, const char *path) {\n    FILE *fp = fopen(path, \"w\");\n    if (fp == NULL) return -1;\n    for (int i = 0; i < r->n; i++) {\n        const Student *s = &r->data[i];\n        fprintf(fp, \"%d %s %.1f %.1f %.1f\\n\",\n                s->id, s->name, s->chinese, s->math, s->english);\n    }\n    fclose(fp);\n    return 0;\n}\n\nint roster_load(Roster *r, const char *path) {\n    FILE *fp = fopen(path, \"r\");\n    if (fp == NULL) return -1;\n\n    char line[128];\n    while (fgets(line, sizeof line, fp) != NULL) {\n        Student s;\n        if (sscanf(line, \"%d %19s %lf %lf %lf\",\n                   &s.id, s.name, &s.chinese, &s.math, &s.english) != 5) continue;\n        if (roster_add(r, s) != 0) break;\n    }\n    fclose(fp);\n    return 0;\n}\n```\n\n三个要点。\n\n第一，读用 fgets 加 sscanf，不直接用 fscanf。这样某一行格式坏了，`continue` 跳过它就行，不会把后面全带乱。\n\n第二，`%19s` 的长度限制不能省，姓名数组是 20 字节。\n\n第三，double 在 scanf 家族里的格式是 `%lf`，不是 `%f`。printf 里两个都行，scanf 里写错就读不进去，这是很常见的一个错。\n\n存盘用 `\"w\"` 模式，每次覆盖。想追加就用 `\"a\"`，但那样容易存出重复记录，一般还是整份重写更省心。"
+    },
+    {
+     "h": "11.6 完整程序",
+     "body": "把上面几段拼起来，加一段主流程。\n\n```c\n#include <stdio.h>\n#include <stdlib.h>\n#include <string.h>\n\ntypedef struct {\n    int    id;\n    char   name[20];\n    double chinese;\n    double math;\n    double english;\n} Student;\n\ntypedef struct {\n    Student *data;\n    int      n;\n    int      cap;\n} Roster;\n\nstatic double avg_of(const Student *s) {\n    return (s->chinese + s->math + s->english) / 3.0;\n}\n\nstatic void roster_init(Roster *r) {\n    r->data = NULL; r->n = 0; r->cap = 0;\n}\n\nstatic void roster_free(Roster *r) {\n    free(r->data);\n    r->data = NULL; r->n = 0; r->cap = 0;\n}\n\nstatic int roster_add(Roster *r, Student s) {\n    if (r->n == r->cap) {\n        int cap = (r->cap == 0) ? 4 : r->cap * 2;\n        Student *bigger = realloc(r->data, (size_t)cap * sizeof *bigger);\n        if (bigger == NULL) return -1;\n        r->data = bigger;\n        r->cap = cap;\n    }\n    r->data[r->n++] = s;\n    return 0;\n}\n\nstatic int roster_find(const Roster *r, int id) {\n    for (int i = 0; i < r->n; i++) {\n        if (r->data[i].id == id) return i;\n    }\n    return -1;\n}\n\nstatic int by_avg_desc(const void *a, const void *b) {\n    double x = avg_of((const Student *)a);\n    double y = avg_of((const Student *)b);\n    return (y > x) - (y < x);\n}\n\nstatic int roster_save(const Roster *r, const char *path) {\n    FILE *fp = fopen(path, \"w\");\n    if (fp == NULL) return -1;\n    for (int i = 0; i < r->n; i++) {\n        const Student *s = &r->data[i];\n        fprintf(fp, \"%d %s %.1f %.1f %.1f\\n\",\n                s->id, s->name, s->chinese, s->math, s->english);\n    }\n    fclose(fp);\n    return 0;\n}\n\nstatic int roster_load(Roster *r, const char *path) {\n    FILE *fp = fopen(path, \"r\");\n    if (fp == NULL) return -1;\n    char line[128];\n    while (fgets(line, sizeof line, fp) != NULL) {\n        Student s;\n        if (sscanf(line, \"%d %19s %lf %lf %lf\",\n                   &s.id, s.name, &s.chinese, &s.math, &s.english) != 5) continue;\n        if (roster_add(r, s) != 0) break;\n    }\n    fclose(fp);\n    return 0;\n}\n\nint main(void) {\n    Roster r;\n    roster_init(&r);\n\n    Student init[5] = {\n        {1001, \"张伟\", 88.0, 92.5, 79.0},\n        {1002, \"李娜\", 95.0, 88.0, 91.5},\n        {1003, \"王强\", 72.5, 65.0, 58.0},\n        {1004, \"赵敏\", 81.0, 79.5, 85.0},\n        {1005, \"陈杰\", 59.0, 71.0, 66.5},\n    };\n    for (int i = 0; i < 5; i++) roster_add(&r, init[i]);\n    printf(\"录入 %d 名学生\\n\", r.n);\n\n    int k = roster_find(&r, 1003);\n    if (k >= 0) printf(\"学号 1003 是 %s 平均 %.2f\\n\", r.data[k].name, avg_of(&r.data[k]));\n\n    qsort(r.data, (size_t)r.n, sizeof r.data[0], by_avg_desc);\n    printf(\"按平均分排名\\n\");\n    for (int i = 0; i < r.n; i++) {\n        printf(\"%d %s %.2f\\n\", i + 1, r.data[i].name, avg_of(&r.data[i]));\n    }\n\n    double total = 0.0;\n    int fail = 0;\n    for (int i = 0; i < r.n; i++) {\n        total += avg_of(&r.data[i]);\n        const Student *s = &r.data[i];\n        if (s->chinese < 60 || s->math < 60 || s->english < 60) fail++;\n    }\n    printf(\"班级平均 %.2f\\n\", total / r.n);\n    printf(\"有不及格科目的 %d 人\\n\", fail);\n\n    roster_save(&r, \"scores.txt\");\n    printf(\"已存入 scores.txt\\n\");\n\n    Roster r2;\n    roster_init(&r2);\n    roster_load(&r2, \"scores.txt\");\n    printf(\"读回 %d 条 第一条是 %s\\n\", r2.n, r2.data[0].name);\n\n    roster_free(&r);\n    roster_free(&r2);\n    return 0;\n}\n```\n\n跑一遍，五名学生录入、查找、排名、统计、存盘、读回全部走通。班级平均是 78.10，排第一的是李娜。"
+    },
+    {
+     "h": "11.7 调试时踩到的三个坑",
+     "body": "这三个是写这个程序时真会遇到的，写下来省得你再撞一次。\n\n**scanf 读 double 用错格式**。写成 `sscanf(line, \"%d %19s %f %f %f\", ...)` 编译能过，运行时成绩全是乱七八糟的数。原因是 `%f` 对应 float，`%lf` 才对应 double，scanf 按格式字符决定往目标地址写几个字节，写错了就错位。打开 `-Wall` 后 gcc 会给出 format 警告，所以警告别忽略。\n\n**排序之后原来记下的下标失效了**。先 roster_find 拿到下标 2，再 qsort，然后拿下标 2 去取，取到的已经是另一个人。凡是会重排元素的操作，之前保存的下标和指针一律作废。要么排序前把需要的数据复制出来，要么排序后重新查一次。\n\n**扩容后忘了更新指针**。写成 `realloc(r->data, ...)` 但不把返回值赋回 r->data，程序有时正常有时崩。正常是因为 realloc 恰好原地扩容，地址没变；崩是因为它搬了家，老地址已经被释放。这类时好时坏的问题最难查，用 `-fsanitize=address` 重新编译一次，它会直接指出用了已释放的内存。\n\n通用的调试顺序是：先看编译警告，再用 printf 把关键变量打出来看，还不行就上地址检查器，最后才用 gdb 单步。多数问题在前两步就能解决。"
+    },
+    {
+     "h": "11.8 学完之后往哪走",
+     "body": "这十二章覆盖的是 C 的主干：类型、控制流、函数、数组、指针、结构体、动态内存、文件、多文件组织、标准库。够用来读懂大部分 C 代码，也够写出几百行的实用程序。\n\n接下来按兴趣挑一个方向。\n\n**把数据结构补齐**。链表、栈、队列、二叉树、哈希表，用 C 自己实现一遍。C 没有现成容器，反而逼你把每个指针的去向想清楚，这是最好的指针练习。\n\n**读真实项目的代码**。挑小而经典的，比如 redis 的早期版本、sqlite 的单文件版、Linux 内核里的某个驱动。重点不是读懂全部，而是看别人怎么组织文件、怎么命名、怎么处理错误。\n\n**学会用工具**。gdb 单步调试，valgrind 查内存问题，gprof 看性能热点，Makefile 或者 CMake 管理构建。工具省下的时间比多写几百行代码有价值。\n\n**往下走一层**。看看编译出来的汇编长什么样，理解栈帧怎么工作、函数调用时参数放在哪。学过 C 再学计算机组成和操作系统会顺很多。\n\n**往上走一层**。学 C++ 或者 Rust，会更清楚它们的设计是在解决 C 的哪些问题。也可以拿 C 写 Python 的扩展模块，把慢的部分换掉。\n\n最后一句：C 不难在语法，语法两周就能学完。难在没有安全网，越界不报错、忘了释放不提醒、未定义行为可能装作正常。所以养成习惯比记住语法重要得多。编译一律开 `-Wall -Wextra` 并且把警告当错误处理，涉及指针的代码顺手加 `-fsanitize=address`，写 malloc 的同时就写好 free。这些习惯会一直跟着你。"
+    }
+   ]
+  }
+ ],
+ "lab": {
+  "6": [
+   {
+    "tag": "练习 6.1",
+    "title": "用结构体描述一本书",
+    "task": "定义一个结构体 Book，包含书名、作者、单价、库存四个字段。建一个装 4 本书的数组，打印一张书目表，再算出全部库存的总金额，最后找出单价最高的一本并打印书名和单价。金额保留两位小数。",
+    "hint": "书名和作者用 char 数组，单价用 double，库存用 int。找最贵的书用第三章的打法：先假设第 0 本最贵，再拿后面每一本去比，比它贵就换成新的下标。总金额是每本的单价乘库存再累加。",
+    "start": "#include <stdio.h>\n\n// TODO: 定义结构体 Book，字段是 title、author、price、stock\n\nint main(void) {\n    // TODO: 建一个 Book 数组，放下面四本书\n    // C程序设计          谭浩强        39.5   12\n    // 算法导论           科尔曼        128.0   3\n    // 小王子             圣埃克苏佩里   22.0  25\n    // 深入理解计算机系统  布莱恩特      139.0   7\n\n    // TODO: 打印表头和四行书目\n\n    // TODO: 累加总金额，按 总金额 %.2f 的格式打印\n\n    // TODO: 找出单价最高的一本，打印它的书名和单价\n\n    return 0;\n}",
+    "sol": "#include <stdio.h>\n\ntypedef struct {\n    char   title[40];\n    char   author[24];\n    double price;\n    int    stock;\n} Book;\n\nint main(void) {\n    Book shelf[4] = {\n        {\"C程序设计\", \"谭浩强\", 39.5, 12},\n        {\"算法导论\", \"科尔曼\", 128.0, 3},\n        {\"小王子\", \"圣埃克苏佩里\", 22.0, 25},\n        {\"深入理解计算机系统\", \"布莱恩特\", 139.0, 7},\n    };\n    int n = 4;\n\n    printf(\"书名 / 作者 / 单价 / 库存\\n\");\n    for (int i = 0; i < n; i++) {\n        printf(\"%s / %s / %.2f / %d\\n\",\n               shelf[i].title, shelf[i].author, shelf[i].price, shelf[i].stock);\n    }\n\n    double total = 0.0;\n    for (int i = 0; i < n; i++) {\n        total += shelf[i].price * shelf[i].stock;\n    }\n    printf(\"总金额 %.2f\\n\", total);\n\n    int top = 0;\n    for (int i = 1; i < n; i++) {\n        if (shelf[i].price > shelf[top].price) top = i;\n    }\n    printf(\"最贵的是 %s，单价 %.2f\\n\", shelf[top].title, shelf[top].price);\n\n    return 0;\n}",
+    "exp": "先出一张四行的书目表，然后是总金额 2381.00，最后指出最贵的是深入理解计算机系统，单价 139.00。"
+   },
+   {
+    "tag": "练习 6.2",
+    "title": "点和矩形",
+    "task": "用 typedef 定义两个结构体：Point 有 x 和 y 两个 double，Rect 有一个左下角 Point 加宽和高。写三个函数，分别算面积、算中心点、判断一个点在不在矩形里，边界算在里面。用左下角在 1 和 2、宽 4 高 3 的矩形，测 2 和 3、6 和 4、5 和 5 三个点。",
+    "hint": "Rect 里可以直接放一个 Point 成员，访问就写 r.origin.x。中心点函数可以直接返回一个 Point，结构体能当返回值。判断点在不在里面，就是 x 落在左右边界之间并且 y 落在上下边界之间，四个条件用 && 连起来。",
+    "start": "#include <stdio.h>\n\n// TODO: 定义 Point，两个 double 成员 x 和 y\n// TODO: 定义 Rect，成员是左下角 origin、宽 w、高 h\n\n// TODO: 写 area 函数，返回矩形面积\n// TODO: 写 center 函数，返回矩形中心点\n// TODO: 写 inside 函数，返回 1 表示点在矩形内，0 表示不在\n\nint main(void) {\n    // TODO: 建一个左下角 1 和 2、宽 4 高 3 的矩形\n    // TODO: 按 面积 %.2f 打印面积\n    // TODO: 按 中心 %.2f %.2f 打印中心点\n    // TODO: 对三个测试点分别打印 点 x y 在内 或者 点 x y 在外\n    return 0;\n}",
+    "sol": "#include <stdio.h>\n\ntypedef struct {\n    double x;\n    double y;\n} Point;\n\ntypedef struct {\n    Point  origin;\n    double w;\n    double h;\n} Rect;\n\ndouble area(Rect r) {\n    return r.w * r.h;\n}\n\nPoint center(Rect r) {\n    Point c;\n    c.x = r.origin.x + r.w / 2.0;\n    c.y = r.origin.y + r.h / 2.0;\n    return c;\n}\n\nint inside(Rect r, Point p) {\n    return p.x >= r.origin.x && p.x <= r.origin.x + r.w\n        && p.y >= r.origin.y && p.y <= r.origin.y + r.h;\n}\n\nint main(void) {\n    Rect r = {{1.0, 2.0}, 4.0, 3.0};\n\n    printf(\"面积 %.2f\\n\", area(r));\n\n    Point c = center(r);\n    printf(\"中心 %.2f %.2f\\n\", c.x, c.y);\n\n    Point tests[3] = {{2.0, 3.0}, {6.0, 4.0}, {5.0, 5.0}};\n    for (int i = 0; i < 3; i++) {\n        printf(\"点 %.1f %.1f 在%s\\n\",\n               tests[i].x, tests[i].y, inside(r, tests[i]) ? \"内\" : \"外\");\n    }\n    return 0;\n}",
+    "exp": "面积 12.00，中心 3.00 3.50。三个点里 2 和 3 在内，5 和 5 正好压在右上角也算在内，6 和 4 在外。"
+   }
+  ],
+  "7": [
+   {
+    "tag": "练习 7.1",
+    "title": "动态数组做统计",
+    "task": "从标准输入先读一个整数 n，再读 n 个整数。用 malloc 按 n 申请刚好够用的空间，把数读进去，然后算出总和、最大值、最小值和平均值。平均值保留两位小数。最后 free 掉。",
+    "hint": "先 scanf 读 n，再按 n 申请 int 数组。scanf 读整数用 %d，注意要传地址，写 &a[i]。最大最小值先用 a[0] 当初值，再从下标 1 开始比。平均值要写成 (double)sum / n，两个整数相除会截掉小数。",
+    "start": "#include <stdio.h>\n#include <stdlib.h>\n\nint main(void) {\n    int n;\n    if (scanf(\"%d\", &n) != 1 || n <= 0) return 1;\n\n    // TODO: 按 n 申请一个 int 数组，检查返回值是不是 NULL\n\n    // TODO: 循环 scanf 把 n 个整数读进数组\n\n    // TODO: 算总和、最大值、最小值\n\n    // TODO: 按下面四行的格式打印\n    // 总和 xxx\n    // 最大 xxx\n    // 最小 xxx\n    // 平均 xx.xx\n\n    // TODO: free\n\n    return 0;\n}",
+    "sol": "#include <stdio.h>\n#include <stdlib.h>\n\nint main(void) {\n    int n;\n    if (scanf(\"%d\", &n) != 1 || n <= 0) return 1;\n\n    int *a = malloc(n * sizeof *a);\n    if (a == NULL) {\n        printf(\"内存不够\\n\");\n        return 1;\n    }\n\n    for (int i = 0; i < n; i++) {\n        if (scanf(\"%d\", &a[i]) != 1) {\n            free(a);\n            return 1;\n        }\n    }\n\n    long sum = 0;\n    int mx = a[0], mn = a[0];\n    for (int i = 0; i < n; i++) {\n        sum += a[i];\n        if (a[i] > mx) mx = a[i];\n        if (a[i] < mn) mn = a[i];\n    }\n\n    printf(\"读入 %d 个数\\n\", n);\n    printf(\"总和 %ld\\n\", sum);\n    printf(\"最大 %d\\n\", mx);\n    printf(\"最小 %d\\n\", mn);\n    printf(\"平均 %.2f\\n\", (double)sum / n);\n\n    free(a);\n    return 0;\n}",
+    "exp": "输入是 8 个数：3 17 5 42 8 -6 21 10。总和 100，最大 42，最小 -6，平均 12.50。"
+   },
+   {
+    "tag": "练习 7.2",
+    "title": "自己写字符串复制和拼接",
+    "task": "写两个返回堆内存的函数。my_dup 复制一个字符串并返回新的一份。my_join 把两个字符串用一个分隔符接起来返回，比如 data 和 csv 用点接成 data.csv。main 里各调用几次，打印结果和长度，用完全部 free。",
+    "hint": "两个函数都是先算出需要多少字节，malloc，再往里写。my_dup 要 strlen 加一。my_join 要两段长度加分隔符一个字节再加一。拼接可以先 strcpy 第一段，再用 strcat 接上分隔符和第二段，分隔符要先做成只有一个字符的小字符串。",
+    "start": "#include <stdio.h>\n#include <stdlib.h>\n#include <string.h>\n\n// TODO: char *my_dup(const char *s)\n//       申请刚好够的内存，把 s 复制进去并返回\n\n// TODO: char *my_join(const char *a, const char *b, char sep)\n//       返回 a + sep + b 拼成的新字符串\n\nint main(void) {\n    // TODO: 用 my_dup 复制 hello，打印内容和长度\n    // TODO: 用 my_join 把 data 和 csv 用点接起来，打印\n    // TODO: 用 my_join 把 2026 和 08 用减号接起来，打印\n    // TODO: 三块内存都 free\n    return 0;\n}",
+    "sol": "#include <stdio.h>\n#include <stdlib.h>\n#include <string.h>\n\nchar *my_dup(const char *s) {\n    char *p = malloc(strlen(s) + 1);\n    if (p == NULL) return NULL;\n    strcpy(p, s);\n    return p;\n}\n\nchar *my_join(const char *a, const char *b, char sep) {\n    size_t need = strlen(a) + 1 + strlen(b) + 1;\n    char *p = malloc(need);\n    if (p == NULL) return NULL;\n\n    char one[2] = {sep, '\\0'};\n    strcpy(p, a);\n    strcat(p, one);\n    strcat(p, b);\n    return p;\n}\n\nint main(void) {\n    char *c1 = my_dup(\"hello\");\n    char *c2 = my_join(\"data\", \"csv\", '.');\n    char *c3 = my_join(\"2026\", \"08\", '-');\n    if (c1 == NULL || c2 == NULL || c3 == NULL) return 1;\n\n    printf(\"复制得到 %s 长度 %zu\\n\", c1, strlen(c1));\n    printf(\"拼接得到 %s\\n\", c2);\n    printf(\"拼接得到 %s\\n\", c3);\n\n    free(c1);\n    free(c2);\n    free(c3);\n    return 0;\n}",
+    "exp": "三行输出：复制出的 hello 长度 5，拼出的 data.csv，拼出的 2026-08。三块内存都要 free，漏掉就是泄漏。"
+   }
+  ],
+  "8": [
+   {
+    "tag": "练习 8.1",
+    "title": "温度记录存成 CSV",
+    "task": "把七天的温度数据写进 temps.csv，每行的格式是日期,最高温,最低温。写完关掉文件，再重新打开读回来，算出平均最高温和平均最低温，并找出温差最大的一天。平均值保留两位小数。数据在起始代码里给好了。",
+    "hint": "写用 fprintf 配 %s,%d,%d 的格式。读回来用 fgets 拿一整行，再用 sscanf 按 %19[^,],%d,%d 拆开，其中 %19[^,] 表示一直读到逗号为止。温差就是最高减最低，比较的打法和找最大值一样。",
+    "start": "#include <stdio.h>\n\nint main(void) {\n    const char *date[7] = {\"2026-08-01\", \"2026-08-02\", \"2026-08-03\",\n                           \"2026-08-04\", \"2026-08-05\", \"2026-08-06\", \"2026-08-07\"};\n    int high[7] = {33, 35, 31, 29, 34, 37, 30};\n    int low[7]  = {25, 26, 24, 23, 25, 26, 22};\n\n    // TODO: 用 \"w\" 打开 temps.csv，检查是不是 NULL\n    // TODO: 循环 fprintf 写七行，格式是 日期,最高,最低\n    // TODO: fclose\n\n    // TODO: 用 \"r\" 重新打开，用 fgets 一行行读回来\n    // TODO: 用 sscanf 把每行拆成日期、最高、最低，累加并记录温差最大的一天\n    // TODO: fclose\n\n    // TODO: 按下面的格式打印\n    // 读回 7 条\n    // 平均最高 xx.xx\n    // 平均最低 xx.xx\n    // 温差最大 日期 温差 x\n\n    return 0;\n}",
+    "sol": "#include <stdio.h>\n\nint main(void) {\n    const char *date[7] = {\"2026-08-01\", \"2026-08-02\", \"2026-08-03\",\n                           \"2026-08-04\", \"2026-08-05\", \"2026-08-06\", \"2026-08-07\"};\n    int high[7] = {33, 35, 31, 29, 34, 37, 30};\n    int low[7]  = {25, 26, 24, 23, 25, 26, 22};\n\n    FILE *fp = fopen(\"temps.csv\", \"w\");\n    if (fp == NULL) {\n        printf(\"打不开文件\\n\");\n        return 1;\n    }\n    for (int i = 0; i < 7; i++) {\n        fprintf(fp, \"%s,%d,%d\\n\", date[i], high[i], low[i]);\n    }\n    fclose(fp);\n\n    fp = fopen(\"temps.csv\", \"r\");\n    if (fp == NULL) {\n        printf(\"打不开文件\\n\");\n        return 1;\n    }\n\n    char line[128];\n    char d[20], best_day[20] = \"\";\n    int h, l, n = 0, sum_h = 0, sum_l = 0, best_gap = -1;\n\n    while (fgets(line, sizeof line, fp) != NULL) {\n        if (sscanf(line, \"%19[^,],%d,%d\", d, &h, &l) != 3) continue;\n        n++;\n        sum_h += h;\n        sum_l += l;\n        if (h - l > best_gap) {\n            best_gap = h - l;\n            snprintf(best_day, sizeof best_day, \"%s\", d);\n        }\n    }\n    fclose(fp);\n\n    printf(\"读回 %d 条\\n\", n);\n    printf(\"平均最高 %.2f\\n\", (double)sum_h / n);\n    printf(\"平均最低 %.2f\\n\", (double)sum_l / n);\n    printf(\"温差最大 %s 温差 %d\\n\", best_day, best_gap);\n\n    return 0;\n}",
+    "exp": "读回 7 条，平均最高 32.71，平均最低 24.43，温差最大的一天是 2026-08-06，温差 11。"
+   },
+   {
+    "tag": "练习 8.2",
+    "title": "统计一个文本文件",
+    "task": "先用程序把四行英文写进 notes.txt，然后重新打开按行读回来，统计行数、单词数和字符数，并找出最长的一行。字符数不算换行符，单词按空格分隔。",
+    "hint": "读一行之后先用 strcspn 把末尾的换行符去掉，再统计。数单词的办法是从头扫一遍，遇到不是空格且前一个是空格的位置就算一个词的开头。最长的一行用 strlen 比较，比当前记录长就用 snprintf 存下来。",
+    "start": "#include <stdio.h>\n#include <string.h>\n\nint main(void) {\n    const char *text[4] = {\n        \"C is a small language\",\n        \"Pointers are the hard part\",\n        \"Practice beats reading\",\n        \"Write code every day\",\n    };\n\n    // TODO: 用 \"w\" 打开 notes.txt，把四行写进去，每行末尾加换行，然后 fclose\n\n    // TODO: 用 \"r\" 重新打开，fgets 一行行读\n    // TODO: 去掉行末换行符，累计行数、单词数、字符数，记录最长的一行\n    // TODO: fclose\n\n    // TODO: 按下面的格式打印\n    // 行数 x\n    // 词数 x\n    // 字符数 x\n    // 最长的一行 xxx\n\n    return 0;\n}",
+    "sol": "#include <stdio.h>\n#include <string.h>\n\nint count_words(const char *s) {\n    int n = 0, in_word = 0;\n    for (int i = 0; s[i] != '\\0'; i++) {\n        if (s[i] == ' ' || s[i] == '\\t') {\n            in_word = 0;\n        } else if (!in_word) {\n            in_word = 1;\n            n++;\n        }\n    }\n    return n;\n}\n\nint main(void) {\n    const char *text[4] = {\n        \"C is a small language\",\n        \"Pointers are the hard part\",\n        \"Practice beats reading\",\n        \"Write code every day\",\n    };\n\n    FILE *fp = fopen(\"notes.txt\", \"w\");\n    if (fp == NULL) {\n        printf(\"打不开文件\\n\");\n        return 1;\n    }\n    for (int i = 0; i < 4; i++) {\n        fprintf(fp, \"%s\\n\", text[i]);\n    }\n    fclose(fp);\n\n    fp = fopen(\"notes.txt\", \"r\");\n    if (fp == NULL) {\n        printf(\"打不开文件\\n\");\n        return 1;\n    }\n\n    char line[256], longest[256] = \"\";\n    int lines = 0, words = 0;\n    size_t chars = 0, best = 0;\n\n    while (fgets(line, sizeof line, fp) != NULL) {\n        line[strcspn(line, \"\\n\")] = '\\0';\n        lines++;\n        words += count_words(line);\n        size_t len = strlen(line);\n        chars += len;\n        if (len > best) {\n            best = len;\n            snprintf(longest, sizeof longest, \"%s\", line);\n        }\n    }\n    fclose(fp);\n\n    printf(\"行数 %d\\n\", lines);\n    printf(\"词数 %d\\n\", words);\n    printf(\"字符数 %zu\\n\", chars);\n    printf(\"最长的一行 %s\\n\", longest);\n\n    return 0;\n}",
+    "exp": "行数 4，词数 17，字符数 89，最长的一行是 Pointers are the hard part。字符数不含换行符，含了就是 93。"
+   }
+  ],
+  "9": [
+   {
+    "tag": "练习 9.1",
+    "title": "先写接口再写实现",
+    "task": "在一个文件里做一个整数栈，但要按多文件的规矩排版：文件顶部只写函数声明，这一段就是接口；main 写在中间；所有函数的实现放在 main 后面。main 之前不许出现任何函数体。实现 push、pop、top、size 五个操作里的四个加一个判空，容量固定 100。测试序列是依次压入 3 1 4 1 5，打印个数和栈顶，再连续弹出三次，最后打印剩下几个和栈是否为空。",
+    "hint": "声明就是函数头加分号。这样排版之后，编译器读到 main 时已经知道每个函数的样子，所以调用写在实现前面也没问题。栈用一个全局的 int 数组加一个记录个数的变量，两个都加 static，表示只在本文件用。弹出前先判空，空栈弹出要有个说法。",
+    "start": "#include <stdio.h>\n\n// 接口区：这里只写声明，不写函数体\n// TODO: void st_push(int v);\n// TODO: int  st_pop(void);\n// TODO: int  st_top(void);\n// TODO: int  st_size(void);\n// TODO: int  st_empty(void);\n\nint main(void) {\n    int data[5] = {3, 1, 4, 1, 5};\n    // TODO: 依次压入五个数，打印一行 入栈 3 1 4 1 5\n    // TODO: 打印 当前元素个数 x\n    // TODO: 打印 栈顶 x\n    // TODO: 连续弹出三次，每次打印 弹出 x\n    // TODO: 打印 剩下 x 个\n    // TODO: 打印 栈空 是 或者 栈空 否\n    return 0;\n}\n\n// 实现区：函数体全写在这里\n// TODO: 用一个 static 数组和一个 static 计数变量，实现上面五个函数",
+    "sol": "#include <stdio.h>\n\nvoid st_push(int v);\nint  st_pop(void);\nint  st_top(void);\nint  st_size(void);\nint  st_empty(void);\n\nint main(void) {\n    int data[5] = {3, 1, 4, 1, 5};\n\n    printf(\"入栈\");\n    for (int i = 0; i < 5; i++) {\n        st_push(data[i]);\n        printf(\" %d\", data[i]);\n    }\n    printf(\"\\n\");\n\n    printf(\"当前元素个数 %d\\n\", st_size());\n    printf(\"栈顶 %d\\n\", st_top());\n\n    for (int i = 0; i < 3; i++) {\n        printf(\"弹出 %d\\n\", st_pop());\n    }\n\n    printf(\"剩下 %d 个\\n\", st_size());\n    printf(\"栈空 %s\\n\", st_empty() ? \"是\" : \"否\");\n    return 0;\n}\n\n#define CAP 100\n\nstatic int buf[CAP];\nstatic int cnt = 0;\n\nvoid st_push(int v) {\n    if (cnt >= CAP) return;\n    buf[cnt++] = v;\n}\n\nint st_pop(void) {\n    if (cnt == 0) return 0;\n    return buf[--cnt];\n}\n\nint st_top(void) {\n    if (cnt == 0) return 0;\n    return buf[cnt - 1];\n}\n\nint st_size(void) {\n    return cnt;\n}\n\nint st_empty(void) {\n    return cnt == 0;\n}",
+    "exp": "压入五个数后个数是 5，栈顶是 5。连续弹出得到 5、1、4，剩下 2 个，栈不空。"
+   },
+   {
+    "tag": "练习 9.2",
+    "title": "调试开关和内部函数",
+    "task": "写一个算中位数的程序，要求三件事：用一个宏 DEBUG 控制调试输出的开关，开着时打印排序后的数组；只在本文件内用的辅助函数加 static；用 assert 检查传进来的个数大于零。对 7 2 9 4 5 和 8 3 6 1 两组数各算一次中位数，保留两位小数。",
+    "hint": "调试开关的常见写法是 #if DEBUG 加 printf 加 #endif，或者定义成一个宏函数。中位数的规则是先排序，个数是奇数取正中间那个，偶数取中间两个的平均。排序用最简单的冒泡就行。assert 在 assert.h 里，条件为假时程序会打印文件名行号并终止。",
+    "start": "#include <stdio.h>\n#include <assert.h>\n\n#define DEBUG 1\n\n// TODO: 定义一个宏 DBG，DEBUG 为 1 时打印，为 0 时什么都不做\n\n// TODO: static 的冒泡排序函数\n// TODO: static 的打印数组函数，给调试用\n\n// TODO: median 函数，先 assert 个数大于零，排序，打印调试信息，返回中位数\n\nint main(void) {\n    int a[5] = {7, 2, 9, 4, 5};\n    int b[4] = {8, 3, 6, 1};\n\n    // TODO: 分别求两组的中位数，按 中位数 x.xx 的格式打印\n    return 0;\n}",
+    "sol": "#include <stdio.h>\n#include <assert.h>\n\n#define DEBUG 1\n\n#if DEBUG\n#define DBG(...) printf(__VA_ARGS__)\n#else\n#define DBG(...) ((void)0)\n#endif\n\nstatic void sort(int *a, int n) {\n    for (int i = 0; i < n - 1; i++) {\n        for (int j = 0; j < n - 1 - i; j++) {\n            if (a[j] > a[j + 1]) {\n                int t = a[j];\n                a[j] = a[j + 1];\n                a[j + 1] = t;\n            }\n        }\n    }\n}\n\nstatic void show(const int *a, int n) {\n    DBG(\"[调试] 排序后\");\n    for (int i = 0; i < n; i++) DBG(\" %d\", a[i]);\n    DBG(\"\\n\");\n}\n\nstatic double median(int *a, int n) {\n    assert(n > 0);\n    sort(a, n);\n    show(a, n);\n    if (n % 2 == 1) return a[n / 2];\n    return (a[n / 2 - 1] + a[n / 2]) / 2.0;\n}\n\nint main(void) {\n    int a[5] = {7, 2, 9, 4, 5};\n    int b[4] = {8, 3, 6, 1};\n\n    printf(\"中位数 %.2f\\n\", median(a, 5));\n    printf(\"中位数 %.2f\\n\", median(b, 4));\n    return 0;\n}",
+    "exp": "两组各先打一行调试信息，然后是中位数 5.00 和 4.50。把 DEBUG 改成 0 重新编译，调试行就没了，中位数照常输出。"
+   }
+  ],
+  "10": [
+   {
+    "tag": "练习 10.1",
+    "title": "用 qsort 排两遍序",
+    "task": "给一个字符串数组排两次序：第一次按字典序，第二次按长度从短到长，长度一样的仍按字典序。每次排完把整行词打印出来，中间用空格隔开。最后再打印最长的那个词。数组内容是 banana apple cherry date fig elderberry。",
+    "hint": "数组元素类型是 char *，所以 qsort 的比较函数里收到的 const void * 实际指向的是一个 char *，要写成 *(const char * const *)a 才能取到字符串。字典序直接把两个字符串交给 strcmp。按长度排就先比 strlen，相等时再交给 strcmp。",
+    "start": "#include <stdio.h>\n#include <stdlib.h>\n#include <string.h>\n\n// TODO: 写按字典序比较的函数\n// TODO: 写按长度比较的函数，长度相同再按字典序\n\nint main(void) {\n    const char *w[6] = {\"banana\", \"apple\", \"cherry\", \"date\", \"fig\", \"elderberry\"};\n    int n = 6;\n\n    // TODO: 按字典序排序，打印一行 字典序 后面跟着六个词\n    // TODO: 按长度排序，打印一行 长度序 后面跟着六个词\n    // TODO: 打印 最长的词 xxx\n\n    return 0;\n}",
+    "sol": "#include <stdio.h>\n#include <stdlib.h>\n#include <string.h>\n\nstatic int by_alpha(const void *a, const void *b) {\n    const char *x = *(const char * const *)a;\n    const char *y = *(const char * const *)b;\n    return strcmp(x, y);\n}\n\nstatic int by_length(const void *a, const void *b) {\n    const char *x = *(const char * const *)a;\n    const char *y = *(const char * const *)b;\n    size_t lx = strlen(x), ly = strlen(y);\n    if (lx != ly) return (lx > ly) - (lx < ly);\n    return strcmp(x, y);\n}\n\nstatic void show(const char *title, const char *w[], int n) {\n    printf(\"%s\", title);\n    for (int i = 0; i < n; i++) printf(\" %s\", w[i]);\n    printf(\"\\n\");\n}\n\nint main(void) {\n    const char *w[6] = {\"banana\", \"apple\", \"cherry\", \"date\", \"fig\", \"elderberry\"};\n    int n = 6;\n\n    qsort(w, n, sizeof w[0], by_alpha);\n    show(\"字典序\", w, n);\n\n    qsort(w, n, sizeof w[0], by_length);\n    show(\"长度序\", w, n);\n\n    printf(\"最长的词 %s\\n\", w[n - 1]);\n    return 0;\n}",
+    "exp": "字典序是 apple banana cherry date elderberry fig，长度序是 fig date apple banana cherry elderberry，最长的词是 elderberry。"
+   },
+   {
+    "tag": "练习 10.2",
+    "title": "从一行文字里挑出数字",
+    "task": "给定一行中文夹数字的文字，把里面所有的整数挑出来，算出个数、最大值、平均值和标准差。平均值和标准差保留两位小数。文字是：温度 23 湿度 65 风速 12 气压 1013 细颗粒物 48。",
+    "hint": "从头扫一遍字符串，用 isdigit 找到数字段的开头，再用 strtol 把整段转成整数，strtol 的第二个参数会告诉你数字在哪里结束，直接从那里继续扫就行。标准差是每个数减平均值再平方，求平均后开方，要用 math.h 的 sqrt 和 pow，编译命令记得带 -lm。",
+    "start": "#include <stdio.h>\n#include <stdlib.h>\n#include <ctype.h>\n#include <math.h>\n\nint main(void) {\n    const char *s = \"温度 23 湿度 65 风速 12 气压 1013 细颗粒物 48\";\n    int nums[32];\n    int n = 0;\n\n    // TODO: 扫描 s，遇到 isdigit 就用 strtol 取出整数存进 nums\n    //       strtol 的第二个参数传一个 char * 的地址，转换结束后它指向数字后面\n\n    // TODO: 按下面的格式打印\n    // 找到 x 个数字\n    // 最大 x\n    // 平均 xx.xx\n    // 标准差 xx.xx\n\n    return 0;\n}",
+    "sol": "#include <stdio.h>\n#include <stdlib.h>\n#include <ctype.h>\n#include <math.h>\n\nint main(void) {\n    const char *s = \"温度 23 湿度 65 风速 12 气压 1013 细颗粒物 48\";\n    int nums[32];\n    int n = 0;\n\n    const char *p = s;\n    while (*p != '\\0' && n < 32) {\n        if (isdigit((unsigned char)*p)) {\n            char *end;\n            long v = strtol(p, &end, 10);\n            nums[n++] = (int)v;\n            p = end;\n        } else {\n            p++;\n        }\n    }\n\n    printf(\"找到 %d 个数字\\n\", n);\n\n    int mx = nums[0];\n    double sum = 0.0;\n    for (int i = 0; i < n; i++) {\n        if (nums[i] > mx) mx = nums[i];\n        sum += nums[i];\n    }\n    double mean = sum / n;\n\n    double var = 0.0;\n    for (int i = 0; i < n; i++) var += pow(nums[i] - mean, 2);\n    var /= n;\n\n    printf(\"最大 %d\\n\", mx);\n    printf(\"平均 %.2f\\n\", mean);\n    printf(\"标准差 %.2f\\n\", sqrt(var));\n    return 0;\n}",
+    "exp": "找到 5 个数字，最大 1013，平均 232.20，标准差 390.84。标准差这么大是因为 1013 把整组数拉开了。"
+   }
+  ],
+  "11": [
+   {
+    "tag": "练习 11.1",
+    "title": "图书借阅管理",
+    "task": "做一个图书借阅程序。结构体 Book 有编号、书名、作者和一个是否借出的标记。用动态数组存书，装满自动扩容。实现添加、按书名借出、按书名归还、统计在馆数量四个功能。加入 5 本书，借出两本，统计一次，归还一本，再统计一次，然后把全部数据存进 library.txt，最后读回来核对条数和在馆数量。",
+    "hint": "动态数组照第七章的写法：一个指针加个数加容量。借出就是找到书之后把标记改成 1，归还改回 0，找不到要有提示。存文件时每行写编号、书名、作者、标记四项，读回来用 fgets 加 sscanf 拆开。书名不含空格所以可以用 %s。",
+    "start": "#include <stdio.h>\n#include <stdlib.h>\n#include <string.h>\n\n// TODO: 定义 Book，字段是 id、title、author、borrowed\n\n// TODO: 定义动态数组结构体，含指针、个数、容量\n\n// TODO: 写 init、free、add、find、count_in_stock 五个函数\n// TODO: 写 save 和 load 两个函数\n\nint main(void) {\n    // TODO: 加入这五本书，borrowed 都是 0\n    // 1 C程序设计 谭浩强\n    // 2 算法导论 科尔曼\n    // 3 小王子 圣埃克苏佩里\n    // 4 深入理解计算机系统 布莱恩特\n    // 5 三体 刘慈欣\n\n    // TODO: 打印 共 5 本\n    // TODO: 借出算法导论和小王子，各打印一行 借出 xxx\n    // TODO: 打印 在馆 3 本\n    // TODO: 归还小王子，打印 归还 小王子\n    // TODO: 打印 在馆 4 本\n    // TODO: 存进 library.txt，打印 已存入 library.txt\n    // TODO: 读回到一个新的容器，打印 读回 5 本 在馆 4 本\n    // TODO: 两个容器都释放\n    return 0;\n}",
+    "sol": "#include <stdio.h>\n#include <stdlib.h>\n#include <string.h>\n\ntypedef struct {\n    int  id;\n    char title[40];\n    char author[24];\n    int  borrowed;\n} Book;\n\ntypedef struct {\n    Book *data;\n    int   n;\n    int   cap;\n} Shelf;\n\nstatic void shelf_init(Shelf *s) {\n    s->data = NULL; s->n = 0; s->cap = 0;\n}\n\nstatic void shelf_free(Shelf *s) {\n    free(s->data);\n    s->data = NULL; s->n = 0; s->cap = 0;\n}\n\nstatic int shelf_add(Shelf *s, Book b) {\n    if (s->n == s->cap) {\n        int cap = (s->cap == 0) ? 2 : s->cap * 2;\n        Book *bigger = realloc(s->data, (size_t)cap * sizeof *bigger);\n        if (bigger == NULL) return -1;\n        s->data = bigger;\n        s->cap = cap;\n    }\n    s->data[s->n++] = b;\n    return 0;\n}\n\nstatic int shelf_find(const Shelf *s, const char *title) {\n    for (int i = 0; i < s->n; i++) {\n        if (strcmp(s->data[i].title, title) == 0) return i;\n    }\n    return -1;\n}\n\nstatic int in_stock(const Shelf *s) {\n    int c = 0;\n    for (int i = 0; i < s->n; i++) {\n        if (!s->data[i].borrowed) c++;\n    }\n    return c;\n}\n\nstatic void borrow(Shelf *s, const char *title) {\n    int k = shelf_find(s, title);\n    if (k < 0) { printf(\"没有这本书 %s\\n\", title); return; }\n    if (s->data[k].borrowed) { printf(\"已经借走了 %s\\n\", title); return; }\n    s->data[k].borrowed = 1;\n    printf(\"借出 %s\\n\", title);\n}\n\nstatic void give_back(Shelf *s, const char *title) {\n    int k = shelf_find(s, title);\n    if (k < 0) { printf(\"没有这本书 %s\\n\", title); return; }\n    s->data[k].borrowed = 0;\n    printf(\"归还 %s\\n\", title);\n}\n\nstatic int shelf_save(const Shelf *s, const char *path) {\n    FILE *fp = fopen(path, \"w\");\n    if (fp == NULL) return -1;\n    for (int i = 0; i < s->n; i++) {\n        const Book *b = &s->data[i];\n        fprintf(fp, \"%d %s %s %d\\n\", b->id, b->title, b->author, b->borrowed);\n    }\n    fclose(fp);\n    return 0;\n}\n\nstatic int shelf_load(Shelf *s, const char *path) {\n    FILE *fp = fopen(path, \"r\");\n    if (fp == NULL) return -1;\n    char line[160];\n    while (fgets(line, sizeof line, fp) != NULL) {\n        Book b;\n        if (sscanf(line, \"%d %39s %23s %d\",\n                   &b.id, b.title, b.author, &b.borrowed) != 4) continue;\n        if (shelf_add(s, b) != 0) break;\n    }\n    fclose(fp);\n    return 0;\n}\n\nint main(void) {\n    Shelf s;\n    shelf_init(&s);\n\n    Book init[5] = {\n        {1, \"C程序设计\", \"谭浩强\", 0},\n        {2, \"算法导论\", \"科尔曼\", 0},\n        {3, \"小王子\", \"圣埃克苏佩里\", 0},\n        {4, \"深入理解计算机系统\", \"布莱恩特\", 0},\n        {5, \"三体\", \"刘慈欣\", 0},\n    };\n    for (int i = 0; i < 5; i++) shelf_add(&s, init[i]);\n    printf(\"共 %d 本\\n\", s.n);\n\n    borrow(&s, \"算法导论\");\n    borrow(&s, \"小王子\");\n    printf(\"在馆 %d 本\\n\", in_stock(&s));\n\n    give_back(&s, \"小王子\");\n    printf(\"在馆 %d 本\\n\", in_stock(&s));\n\n    shelf_save(&s, \"library.txt\");\n    printf(\"已存入 library.txt\\n\");\n\n    Shelf t;\n    shelf_init(&t);\n    shelf_load(&t, \"library.txt\");\n    printf(\"读回 %d 本 在馆 %d 本\\n\", t.n, in_stock(&t));\n\n    shelf_free(&s);\n    shelf_free(&t);\n    return 0;\n}",
+    "exp": "共 5 本，借出两本后在馆 3 本，归还一本后在馆 4 本。存进 library.txt 再读回来还是 5 本、在馆 4 本，说明借出状态也一起存下来了。"
+   },
+   {
+    "tag": "练习 11.2",
+    "title": "词频统计器",
+    "task": "先把三行英文写进 words.txt，再读回来做词频统计。切词时按空格分，全部转成小写。用动态数组存不同的词和它们的次数，遇到新词就追加，装满就扩容。最后按出现次数从多到少排序，次数相同的按字母序，打印总词数、不同词数和前五名。",
+    "hint": "存一个词就是一个结构体，含一个字符数组和一个计数。查这个词有没有出现过，就遍历数组用 strcmp 比。转小写用 tolower，记得参数转 unsigned char。排序用 qsort，比较函数里先比次数的大小，次数一样再用 strcmp 比词本身。",
+    "start": "#include <stdio.h>\n#include <stdlib.h>\n#include <string.h>\n#include <ctype.h>\n\n// TODO: 定义 Word 结构体，含 text 和 count\n// TODO: 定义动态数组结构体\n\n// TODO: 写一个函数，把一个词加进统计，已存在就次数加一\n// TODO: 写 qsort 的比较函数，次数降序，次数相同按字母升序\n\nint main(void) {\n    const char *text[3] = {\n        \"the quick brown fox jumps over the lazy dog\",\n        \"the dog barks and the fox runs\",\n        \"a quick fox is a happy fox\",\n    };\n\n    // TODO: 把三行写进 words.txt\n\n    // TODO: 用 fgets 读回来，用 strtok 按空格切词，转小写后加进统计\n    //       同时累计总词数\n\n    // TODO: 排序，然后按下面的格式打印\n    // 总词数 x\n    // 不同词 x\n    // 前五名\n    // 词 次数    （五行）\n\n    return 0;\n}",
+    "sol": "#include <stdio.h>\n#include <stdlib.h>\n#include <string.h>\n#include <ctype.h>\n\ntypedef struct {\n    char text[32];\n    int  count;\n} Word;\n\ntypedef struct {\n    Word *data;\n    int   n;\n    int   cap;\n} Vocab;\n\nstatic void vocab_init(Vocab *v) {\n    v->data = NULL; v->n = 0; v->cap = 0;\n}\n\nstatic void vocab_free(Vocab *v) {\n    free(v->data);\n    v->data = NULL; v->n = 0; v->cap = 0;\n}\n\nstatic int vocab_bump(Vocab *v, const char *w) {\n    for (int i = 0; i < v->n; i++) {\n        if (strcmp(v->data[i].text, w) == 0) {\n            v->data[i].count++;\n            return 0;\n        }\n    }\n    if (v->n == v->cap) {\n        int cap = (v->cap == 0) ? 4 : v->cap * 2;\n        Word *bigger = realloc(v->data, (size_t)cap * sizeof *bigger);\n        if (bigger == NULL) return -1;\n        v->data = bigger;\n        v->cap = cap;\n    }\n    snprintf(v->data[v->n].text, sizeof v->data[v->n].text, \"%s\", w);\n    v->data[v->n].count = 1;\n    v->n++;\n    return 0;\n}\n\nstatic int by_count_desc(const void *a, const void *b) {\n    const Word *x = (const Word *)a;\n    const Word *y = (const Word *)b;\n    if (x->count != y->count) return y->count - x->count;\n    return strcmp(x->text, y->text);\n}\n\nint main(void) {\n    const char *text[3] = {\n        \"the quick brown fox jumps over the lazy dog\",\n        \"the dog barks and the fox runs\",\n        \"a quick fox is a happy fox\",\n    };\n\n    FILE *fp = fopen(\"words.txt\", \"w\");\n    if (fp == NULL) { printf(\"打不开文件\\n\"); return 1; }\n    for (int i = 0; i < 3; i++) fprintf(fp, \"%s\\n\", text[i]);\n    fclose(fp);\n\n    Vocab v;\n    vocab_init(&v);\n    int total = 0;\n\n    fp = fopen(\"words.txt\", \"r\");\n    if (fp == NULL) { printf(\"打不开文件\\n\"); return 1; }\n\n    char line[256];\n    while (fgets(line, sizeof line, fp) != NULL) {\n        for (int i = 0; line[i] != '\\0'; i++) {\n            line[i] = (char)tolower((unsigned char)line[i]);\n        }\n        char *p = strtok(line, \" \\t\\r\\n\");\n        while (p != NULL) {\n            total++;\n            vocab_bump(&v, p);\n            p = strtok(NULL, \" \\t\\r\\n\");\n        }\n    }\n    fclose(fp);\n\n    qsort(v.data, (size_t)v.n, sizeof v.data[0], by_count_desc);\n\n    printf(\"总词数 %d\\n\", total);\n    printf(\"不同词 %d\\n\", v.n);\n    printf(\"前五名\\n\");\n    int top = v.n < 5 ? v.n : 5;\n    for (int i = 0; i < top; i++) {\n        printf(\"%s %d\\n\", v.data[i].text, v.data[i].count);\n    }\n\n    vocab_free(&v);\n    return 0;\n}",
+    "exp": "总词数 23，不同词 14。前五名是 fox 4、the 4、a 2、dog 2、quick 2。fox 排在 the 前面是因为次数一样时按字母序。"
+   }
+  ]
+ },
+ "checks": {
+  "6.1": {
+   "items": [
+    [
+     "打出了书目表",
+     "算法导论"
+    ],
+    [
+     "总金额算出 2381.00",
+     "总金额 2381.00"
+    ],
+    [
+     "找出最贵的一本",
+     "最贵的是 深入理解计算机系统"
+    ],
+    [
+     "最高单价 139.00",
+     "139.00"
+    ]
+   ]
+  },
+  "6.2": {
+   "items": [
+    [
+     "面积算出 12.00",
+     "面积 12.00"
+    ],
+    [
+     "中心点是 3.00 3.50",
+     "中心 3.00 3.50"
+    ],
+    [
+     "6 和 4 判为在外",
+     "在外"
+    ],
+    [
+     "边界点判为在内",
+     "点 5.0 5.0 在内"
+    ]
+   ]
+  },
+  "7.1": {
+   "stdin": "8\n3 17 5 42 8 -6 21 10\n",
+   "items": [
+    [
+     "读入了 8 个数",
+     "读入 8 个数"
+    ],
+    [
+     "总和 100",
+     "总和 100"
+    ],
+    [
+     "最小值 -6",
+     "最小 -6"
+    ],
+    [
+     "平均 12.50",
+     "平均 12.50"
+    ]
+   ]
+  },
+  "7.2": {
+   "items": [
+    [
+     "复制出 hello",
+     "复制得到 hello"
+    ],
+    [
+     "长度算出 5",
+     "长度 5"
+    ],
+    [
+     "拼出 data.csv",
+     "data.csv"
+    ],
+    [
+     "拼出 2026-08",
+     "2026-08"
+    ]
+   ]
+  },
+  "8.1": {
+   "items": [
+    [
+     "写完再读回了 7 条",
+     "读回 7 条"
+    ],
+    [
+     "平均最高 32.71",
+     "平均最高 32.71"
+    ],
+    [
+     "平均最低 24.43",
+     "平均最低 24.43"
+    ],
+    [
+     "温差最大的是 08-06 差 11 度",
+     "2026-08-06 温差 11"
+    ]
+   ]
+  },
+  "8.2": {
+   "items": [
+    [
+     "数出 4 行",
+     "行数 4"
+    ],
+    [
+     "数出 17 个词",
+     "词数 17"
+    ],
+    [
+     "数出 89 个字符",
+     "字符数 89"
+    ],
+    [
+     "找出最长的一行",
+     "最长的一行 Pointers are the hard part"
+    ]
+   ]
+  },
+  "9.1": {
+   "items": [
+    [
+     "压入后个数是 5",
+     "当前元素个数 5"
+    ],
+    [
+     "栈顶是 5",
+     "栈顶 5"
+    ],
+    [
+     "第三次弹出 4",
+     "弹出 4"
+    ],
+    [
+     "弹三次后剩 2 个",
+     "剩下 2 个"
+    ]
+   ]
+  },
+  "9.2": {
+   "items": [
+    [
+     "打出了调试信息",
+     "[调试] 排序后 2 4 5 7 9"
+    ],
+    [
+     "第二组排序后是 1 3 6 8",
+     "1 3 6 8"
+    ],
+    [
+     "奇数个的中位数 5.00",
+     "中位数 5.00"
+    ],
+    [
+     "偶数个的中位数 4.50",
+     "中位数 4.50"
+    ]
+   ]
+  },
+  "10.1": {
+   "items": [
+    [
+     "字典序排对了",
+     "字典序 apple banana cherry date elderberry fig"
+    ],
+    [
+     "长度序排对了",
+     "长度序 fig date apple banana cherry elderberry"
+    ],
+    [
+     "最长的词是 elderberry",
+     "最长的词 elderberry"
+    ],
+    [
+     "两次排序都输出了",
+     "长度序"
+    ]
+   ]
+  },
+  "10.2": {
+   "items": [
+    [
+     "挑出 5 个数字",
+     "找到 5 个数字"
+    ],
+    [
+     "最大值 1013",
+     "最大 1013"
+    ],
+    [
+     "平均 232.20",
+     "平均 232.20"
+    ],
+    [
+     "标准差 390.84",
+     "标准差 390.84"
+    ]
+   ]
+  },
+  "11.1": {
+   "items": [
+    [
+     "加入了 5 本书",
+     "共 5 本"
+    ],
+    [
+     "借出两本后在馆 3 本",
+     "在馆 3 本"
+    ],
+    [
+     "归还一本后在馆 4 本",
+     "在馆 4 本"
+    ],
+    [
+     "存盘再读回还是 5 本",
+     "读回 5 本 在馆 4 本"
+    ]
+   ]
+  },
+  "11.2": {
+   "items": [
+    [
+     "总词数 23",
+     "总词数 23"
+    ],
+    [
+     "不同词 14",
+     "不同词 14"
+    ],
+    [
+     "fox 出现 4 次",
+     "fox 4"
+    ],
+    [
+     "the 出现 4 次",
+     "the 4"
+    ]
+   ]
+  }
+ }
+}

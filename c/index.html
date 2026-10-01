@@ -1,0 +1,750 @@
+<!doctype html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>C 语言入门 · 动手实践 · YF308AI实验室开放学习平台</title>
+<link rel="icon" href="../assets/favicon.png">
+<link rel="apple-touch-icon" href="../assets/logo-180.png">
+<style>
+:root{
+  --bg:#ffffff; --fg:#1b1b1b; --muted:#6b6b6b; --line:#e6e6e6; --card:#fafafa;
+  --code-bg:#f6f6f6; --accent:#222; --ok:#2f7d3a; --warn:#8a6d00; --pill:#f0f0f0;
+  --mono:"Cascadia Code",Consolas,"SF Mono",Menlo,"Microsoft YaHei",monospace;
+  --headbg:#ebedf2;
+  --shadow:0 1px 3px rgba(0,0,0,.06),0 8px 24px rgba(0,0,0,.05);
+}
+@media (prefers-color-scheme: dark){
+  :root{ --bg:#151515; --fg:#e9e9e9; --muted:#9b9b9b; --line:#2b2b2b; --card:#1d1d1d;
+    --code-bg:#191919; --accent:#e9e9e9; --ok:#7bc888; --warn:#d8bd5a; --pill:#242424; --headbg:#242731;
+    --shadow:0 1px 3px rgba(0,0,0,.4),0 10px 30px rgba(0,0,0,.35);}
+}
+:root[data-theme="light"]{ --bg:#fff;--fg:#1b1b1b;--muted:#6b6b6b;--line:#e6e6e6;--card:#fafafa;--code-bg:#f6f6f6;--accent:#222;--ok:#2f7d3a;--warn:#8a6d00;--pill:#f0f0f0;--headbg:#ebedf2;}
+:root[data-theme="dark"]{ --bg:#151515;--fg:#e9e9e9;--muted:#9b9b9b;--line:#2b2b2b;--card:#1d1d1d;--code-bg:#191919;--accent:#e9e9e9;--ok:#7bc888;--warn:#d8bd5a;--pill:#242424;--headbg:#242731;}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--fg);
+  font-family:-apple-system,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+  line-height:1.75;font-size:16px;-webkit-font-smoothing:antialiased}
+code{font-family:var(--mono)}
+/* 按钮和输入框默认不继承字体，会掉回 Arial，和正文不是一套 */
+button,input,select,textarea{font-family:inherit}
+
+/* 布局 */
+.app{display:flex;align-items:flex-start;max-width:1180px;margin:0 auto}
+.sidebar{position:sticky;top:0;align-self:flex-start;width:212px;flex:0 0 212px;height:100vh;
+  overflow-y:auto;border-right:1px solid var(--line);padding:1.5rem .8rem}
+.sidebar .brand{margin:0 .4rem 1.1rem}
+.sidebar .brand .back{display:inline-block;color:var(--muted);font-size:.82rem;
+  text-decoration:none;padding:0 0 .5rem}
+.sidebar .brand .back:hover{color:var(--fg)}
+.brand-mini{display:flex;align-items:center;gap:9px;margin-bottom:10px}
+.brand-mini img{width:26px;height:26px}
+.brand-mini span{font-size:12.5px;font-weight:600;color:var(--muted);line-height:1.3}
+.sidebar .brand .tname{font-weight:700;font-size:1.02rem;line-height:1.4;margin-top:.3rem}
+.content{flex:1;min-width:0;padding:1.8rem 1.7rem 4rem}
+.part-title{font-size:1.4rem;font-weight:700;margin:0 0 1.4rem;
+  padding-bottom:.7rem;border-bottom:2px solid var(--line)}
+.view{display:none}
+.view.on{display:block}
+.vtoggle{display:flex;gap:.25rem;background:var(--pill);border-radius:999px;padding:.25rem;margin-bottom:1.1rem}
+.vtoggle button{flex:1;border:0;background:transparent;color:var(--muted);padding:.45rem 0;
+  border-radius:999px;cursor:pointer;font-weight:600;font-size:.92rem}
+.vtoggle button.on{background:var(--bg);color:var(--fg);box-shadow:var(--shadow)}
+.chaps{display:flex;flex-direction:column;gap:.15rem}
+.chaps .chap{text-align:left;border:0;background:transparent;color:var(--fg);
+  padding:.52rem .6rem;border-radius:8px;cursor:pointer;font-size:.9rem;transition:.12s;width:100%}
+.chaps .chap:hover{background:var(--card)}
+.chaps .chap.on{background:var(--accent);color:var(--bg);font-weight:600}
+.subs{display:flex;flex-direction:column;gap:.04rem;margin:.15rem 0 .4rem;
+  border-left:2px solid var(--line);padding-left:.3rem;margin-left:.5rem}
+.chaps .sub{display:block;text-align:left;border:0;background:transparent;color:var(--muted);
+  margin:0;max-width:none;width:100%;
+  padding:.32rem .55rem;border-radius:6px;cursor:pointer;font-size:.79rem;line-height:1.35;transition:.12s}
+.chaps .sub:hover{background:var(--card);color:var(--fg)}
+.fontctl{display:flex;align-items:center;gap:.4rem;margin-top:1.4rem;padding:0 .4rem;color:var(--muted);font-size:.82rem}
+.fontctl button{border:1px solid var(--line);background:var(--bg);color:var(--fg);width:28px;height:26px;border-radius:6px;cursor:pointer;font-size:.85rem}
+.fontctl button:hover{background:var(--card)}
+.theme{position:fixed;top:1rem;right:1rem;border:1px solid var(--line);background:var(--bg);
+  color:var(--fg);border-radius:999px;width:38px;height:38px;cursor:pointer;font-size:1rem;z-index:30}
+footer{color:var(--muted);font-size:.86rem;padding:1.6rem 1.2rem 3rem;border-top:1px solid var(--line);max-width:1000px;margin:2rem auto 0}
+
+/* 讲义正文 */
+.sec{max-width:880px;margin:0 auto 1.4rem;border:1px solid var(--line);border-radius:14px;
+  overflow:hidden;box-shadow:var(--shadow)}
+.sec-h{display:flex;align-items:center;gap:10px;background:var(--headbg);padding:.85rem 1.15rem;
+  font-weight:700;font-size:1.02rem;cursor:pointer;user-select:none}
+.sec-h:hover .caret{color:var(--fg)}
+.caret{flex:none;width:14px;color:var(--muted);font-size:11px;transition:transform .15s}
+.caret::before{content:"▼";display:block}
+.sec.off .caret{transform:rotate(-90deg)}
+.sec.off .sec-b{display:none}
+.sec-b{padding:.3rem 1.15rem 1.1rem;font-size:.95rem}
+.sec-b p{margin:.7rem 0}
+.sec-b ul,.sec-b ol{margin:.6rem 0;padding-left:1.4rem}
+.sec-b li{margin:.2rem 0}
+.sec-b>p>code,.sec-b li code,.sec-b td code,.sec-b th code{background:var(--code-bg);
+  border:1px solid var(--line);border-radius:5px;padding:.05rem .32rem;font-size:.9em}
+.sec-b img{max-width:100%;border-radius:8px;border:1px solid var(--line)}
+.lec-h{font-size:1.02rem;font-weight:700;margin:1.9rem 0 .8rem;line-height:1.55}
+.lec-cap{font-size:13px;font-weight:650;color:var(--muted);margin:0 0 .4rem}
+.sec-b>.lec-h:first-child{margin-top:.7rem}
+:root{ --fig:#30385c; --fig-soft:rgba(48,56,92,.07) }
+:root[data-theme=dark]{ --fig:#9fb0e8; --fig-soft:rgba(159,176,232,.10) }
+
+.lec-core{position:relative;margin:.9rem 0 1.3rem;padding:20px 22px 6px;border:1px solid var(--fig);
+  border-radius:12px;background:var(--fig-soft)}
+.lec-core-k{position:absolute;top:-10px;left:18px;background:var(--bg);padding:0 8px;
+  font-size:12px;font-weight:700;letter-spacing:.5px;color:var(--fig)}
+.lec-core p{margin:0 0 14px}
+.lec-key{background:var(--fig-soft);color:inherit;border-radius:4px;padding:1px 5px;font-weight:650}
+
+.lec-tbl{overflow-x:auto;margin:.85rem 0}
+.lec-tbl table{border-collapse:collapse;font-size:.88rem;min-width:100%}
+.lec-tbl th,.lec-tbl td{border:1px solid var(--line);padding:.45rem .7rem;text-align:left;vertical-align:top}
+.lec-tbl th{background:var(--card);font-weight:600}
+.snip{margin:.85rem 0;border:1px solid #2b2b2b;border-radius:8px;overflow:hidden;background:#1e1e1e}
+.snip pre{margin:0;padding:.75rem 1rem;overflow-x:auto;color:#d4d4d4;
+  font-family:var(--mono);font-size:var(--edfs,14px);line-height:1.6;tab-size:4}
+.snip-bar{display:flex;justify-content:flex-end;padding:.4rem .5rem;background:#181818;border-top:1px solid #2b2b2b}
+.snip-bar button{border:1px solid #3a3a3a;background:#252525;color:#d4d4d4;font-size:.83rem;
+  padding:.4rem .9rem;border-radius:6px;cursor:pointer}
+.snip-bar button:hover{background:#303030;color:#fff}
+
+/* 练习卡片 */
+.ex{border:1px solid var(--line);border-radius:14px;margin:1.2rem auto;max-width:880px;
+  overflow:hidden;box-shadow:var(--shadow)}
+.ex-h{background:var(--card);padding:.9rem 1.1rem;font-weight:700;display:flex;gap:.6rem;align-items:baseline}
+.ex-h .tag{font-size:.72rem;color:var(--bg);background:var(--accent);border-radius:20px;padding:.12rem .6rem;white-space:nowrap}
+.ex-b{padding:.5rem 1.1rem 1.1rem}
+.ex-b p{margin:.75rem 0}
+details.fold{margin:.6rem 0;border:1px solid var(--line);border-radius:9px;background:var(--code-bg)}
+details.fold>summary{cursor:pointer;padding:.6rem .95rem;font-size:.9rem;user-select:none;font-weight:600}
+details.fold>summary:hover{color:var(--accent)}
+details.fold pre{margin:0;padding:.95rem 1.1rem;overflow-x:auto;border-top:1px solid var(--line);
+  font-family:var(--mono);font-size:.84rem;line-height:1.6;tab-size:4}
+details.fold pre.hlpre{background:#1e1e1e;color:#d4d4d4}
+.hint{padding:.65rem .95rem;color:var(--muted);font-size:.92rem}
+.exp{color:var(--ok);font-weight:700}
+
+/* 代码单元 */
+.cell{display:flex;border:1px solid #2b2b2b;border-radius:8px;overflow:hidden;background:#1e1e1e;margin-top:.4rem}
+.cell.out{margin-top:.5rem}
+.gutter{flex:0 0 54px;background:#181818;padding:.7rem .45rem;text-align:right;
+  font-family:var(--mono);font-size:.72rem;color:#6a9bd1;user-select:none;
+  display:flex;flex-direction:column;align-items:flex-end;gap:.5rem}
+.gutter .play{border:0;background:transparent;color:#4ec9b0;cursor:pointer;font-size:1rem;padding:0;line-height:1}
+.gutter .play:hover{color:#7fe9d4}
+.gutter .outp{color:#c586c0}
+.edwrap{position:relative;flex:1;min-width:0}
+.edwrap pre.hl,.edwrap textarea{margin:0;padding:.7rem 1rem;box-sizing:border-box;
+  font-family:var(--mono);font-size:var(--edfs,14px);line-height:1.6;
+  tab-size:4;white-space:pre;overflow-wrap:normal;letter-spacing:0;border:0}
+.edwrap pre.hl{position:absolute;inset:0;overflow:hidden;color:#d4d4d4;pointer-events:none}
+.edwrap textarea{position:relative;display:block;width:100%;height:var(--cellh,300px);min-height:110px;
+  outline:0;resize:vertical;background:transparent;color:transparent;caret-color:#e6e6e6;overflow:auto}
+.edwrap textarea::selection{background:#264f78;color:transparent}
+.ckw{color:#569cd6}.cst{color:#ce9178}.ccm{color:#6a9955}.cnu{color:#b5cea8}.cbi{color:#dcdcaa}.cpr{color:#c586c0}
+.output{margin:0;padding:.7rem 1rem;background:#1e1e1e;color:#d4d4d4;
+  font-family:var(--mono);font-size:var(--edfs,14px);line-height:1.55;
+  white-space:pre-wrap;max-height:400px;overflow:auto}
+.outhead{padding:.45rem 1rem;background:#2a1f1f;color:#e0a0a0;font-size:.82rem;font-weight:600;
+  border-bottom:1px solid #3a2a2a}
+.figs{display:flex;flex-wrap:wrap;gap:10px;padding:0 0 6px}
+.figs img{max-width:100%;background:#fff;border-radius:8px;padding:6px;border:1px solid var(--line)}
+
+/* 操作条与判题 */
+.exbar{display:flex;gap:.55rem;align-items:center;margin:.6rem 0;flex-wrap:wrap}
+.exbar button{border:1px solid var(--line);background:var(--bg);color:var(--fg);font-size:.88rem;
+  height:38px;padding:0 1.05rem;border-radius:7px;cursor:pointer}
+.exbar button:hover{background:var(--card)}
+.exbar .runall{background:#0e639c;color:#fff;border-color:#0e639c;font-weight:600}
+.exbar .runall:hover{background:#1177bb}
+.exbar .runall:disabled,.exbar .submit:disabled{opacity:.5;cursor:default}
+.exbar .submit{background:#2e7d32;color:#fff;border-color:#2e7d32;font-weight:600}
+.exbar .submit:hover{background:#388e3c}
+.runstat{color:var(--muted);font-size:.85rem;margin-left:auto}
+.stdinrow{display:none;margin:.55rem 0 0}
+.stdinrow input{width:100%;height:44px;background:var(--code-bg);color:var(--fg);
+  border:1px solid var(--line);border-radius:8px;padding:0 13px;font-size:14px;font-family:var(--mono)}
+.stdinrow textarea{width:100%;min-height:62px;background:var(--code-bg);color:var(--fg);
+  border:1px solid var(--line);border-radius:8px;padding:10px 13px;font-size:14px;
+  font-family:var(--mono);resize:vertical}
+.judge{margin:.55rem 0 0;padding:.7rem .9rem;border:1px solid var(--line);border-radius:8px;
+  background:var(--bg);font-size:.87rem;line-height:1.7}
+.judge.ok{border-color:#2e7d32}
+.judge.no{border-color:#b8860b}
+.judge .jtitle{font-weight:600;margin-bottom:.35rem}
+.judge ul{margin:.3rem 0 0;padding-left:1.2rem}
+.judge li{margin:.12rem 0}
+.judge li.y{color:#2e7d32}
+.judge li.n{color:var(--muted)}
+.empty{color:var(--muted);max-width:880px;margin:0 auto}
+
+@media(max-width:820px){
+  .app{flex-direction:column}
+  .sidebar{position:static;width:auto;flex:none;height:auto;border-right:0;border-bottom:1px solid var(--line);padding:1rem}
+  .content{padding:1.3rem 1.1rem 3rem}
+  .chaps{flex-direction:row;flex-wrap:wrap;justify-content:flex-start}
+  .chaps .chap{border:1px solid var(--line);border-radius:999px;padding:.32rem .8rem;font-size:.84rem;width:auto}
+  .subs{flex-basis:100%;flex-direction:column;align-items:flex-start;margin:.15rem 0 .4rem 1rem}
+}
+</style>
+</head>
+<script src="../assets/theme.js"></script>
+<script src="../assets/runner.js"></script>
+<script src="../assets/lecture.js"></script>
+<body>
+<button class="theme" onclick="toggleTheme()" title="切换深浅色">◐</button>
+<div class="app" id="app">
+  <aside class="sidebar">
+    <div class="brand">
+      <a class="back" href="../index.html">← 全部课程</a>
+      <div class="brand-mini"><img src="../assets/logo.png" alt=""><span>YF308AI实验室开放学习平台</span></div>
+      <div class="tname">C 语言入门</div>
+    </div>
+    <div class="vtoggle">
+      <button id="seg-know" class="on" onclick="setView('know')">知识点</button>
+      <button id="seg-lab" onclick="setView('lab')">实战</button>
+    </div>
+    <nav class="chaps" id="parts"></nav>
+    <div class="fontctl">代码字号 <button onclick="setFont(-1)">A-</button><button onclick="setFont(1)">A+</button></div>
+  </aside>
+  <div class="content">
+    <div id="view-know" class="view on">
+      <div class="part-title" id="know-title"></div>
+      <div id="know-body"></div>
+    </div>
+    <div id="view-lab" class="view">
+      <div class="part-title" id="lab-title"></div>
+      <div id="lab-body"></div>
+    </div>
+    <footer id="foot"></footer>
+  </div>
+</div>
+<script>
+/* ---------- 数据 ---------- */
+/* 真实课程内容在 data/course.json，取不到时用下面这份样例把页面跑起来。 */
+const DEMO = {
+  chapters: [
+    {n:0, title:"跑通第一个程序", sections:[
+      {h:"0.1 先让电脑说句话", body:
+`C 语言的程序从 `+"`main`"+` 函数开始跑。下面这段是能编译运行的最小程序。
+
+\`\`\`c
+#include <stdio.h>
+
+int main(void) {
+    printf("你好，C 语言\\n");
+    return 0;
+}
+\`\`\`
+
+三件事要记住：
+
+- \`#include <stdio.h>\` 把输入输出的函数声明拿进来，没有它 \`printf\` 用不了。
+- \`main\` 是入口，\`return 0\` 表示正常结束。
+- 每条语句以分号结尾，字符串里的 \`\\n\` 是换行。`},
+      {h:"0.2 编译和运行是两步", body:
+`Python 写完直接跑，C 要先编译成可执行文件再跑。编译不过就根本不会执行。
+
+| 步骤 | 命令 | 出错时看什么 |
+| --- | --- | --- |
+| 编译 | \`gcc hello.c -o hello\` | 报错里的行号和 \`error:\` |
+| 运行 | \`./hello\` | 程序自己打印的内容 |
+
+**编译报错先看第一条。** 后面的错误常常是第一条引起的连锁反应，改掉第一条再重新编译。`},
+      {h:"0.3 读入一个数", body:
+`\`scanf\` 从键盘读数据，要在变量名前加取地址符 \`&\`。
+
+\`\`\`c
+#include <stdio.h>
+
+int main(void) {
+    int age;
+    scanf("%d", &age);
+    printf("明年你 %d 岁\\n", age + 1);
+    return 0;
+}
+\`\`\`
+
+常用的占位符有四个：
+
+1. \`%d\` 整数
+2. \`%f\` 小数
+3. \`%s\` 字符串
+4. \`%c\` 单个字符`}]},
+    {n:1, title:"变量和基本类型", sections:[
+      {h:"1.1 变量要先声明类型", body:
+`C 的变量必须先写明类型再使用，类型定了就不能换。
+
+\`\`\`c
+#include <stdio.h>
+
+int main(void) {
+    int count = 3;
+    double price = 12.5;
+    char grade = 'A';
+    printf("%d 件，共 %.2f 元，评级 %c\\n", count, count * price, grade);
+    return 0;
+}
+\`\`\`
+
+常用类型有这几种：
+
+1. \`int\` 整数，一般 4 字节。
+2. \`double\` 双精度小数，算钱和平均值都用它。
+3. \`char\` 单个字符，用单引号写。`},
+      {h:"1.2 整数相除会截断", body:
+`两个整数相除，结果直接丢掉小数部分。
+
+\`\`\`c
+#include <stdio.h>
+
+int main(void) {
+    int a = 7, b = 2;
+    printf("%d\\n", a / b);
+    printf("%.2f\\n", (double)a / b);
+    return 0;
+}
+\`\`\`
+
+第一行打印 3，第二行打印 3.50。想要小数就把其中一个转成 \`double\`。`}]}
+  ],
+  lab: {
+    "0": [
+      {tag:"练习 0.1", title:"打印一张名片",
+       task:"用 printf 打印三行：上下各一行 24 个减号的分隔线，中间一行是你的名字。",
+       hint:"分隔线可以直接写死在字符串里，也可以用 for 循环打印 24 个减号。别忘了每行末尾的 \\n。",
+       start:
+`#include <stdio.h>
+
+int main(void) {
+    /* 打印一行 24 个减号 */
+
+    /* 打印名字 */
+
+    /* 再打印一行 24 个减号 */
+    return 0;
+}`,
+       sol:
+`#include <stdio.h>
+
+int main(void) {
+    printf("------------------------\\n");
+    printf("张三\\n");
+    printf("------------------------\\n");
+    return 0;
+}`,
+       exp:"三行输出，上下对齐。printf 不会自动换行，行末要自己写 \\n。"},
+      {tag:"练习 0.2", title:"读两个数求和",
+       task:"从键盘读入两个整数，打印它们的和。",
+       hint:"scanf(\"%d %d\", &a, &b) 一次读两个数。两个数可以写在同一行用空格隔开。",
+       start:
+`#include <stdio.h>
+
+int main(void) {
+    int a, b;
+    /* 读入 a 和 b */
+
+    /* 打印 a + b */
+    return 0;
+}`,
+       sol:
+`#include <stdio.h>
+
+int main(void) {
+    int a, b;
+    scanf("%d %d", &a, &b);
+    printf("%d\\n", a + b);
+    return 0;
+}`,
+       exp:"输入 3 和 5，输出 8。scanf 里变量名前面必须加 &，漏了会崩。"}
+    ],
+    "1": [
+      {tag:"练习 1.1", title:"摄氏度转华氏度",
+       task:"读入一个摄氏温度，按华氏等于摄氏乘 1.8 加 32 换算，结果保留一位小数。",
+       hint:"温度用 double 存。保留一位小数的格式是 %.1f。",
+       start:
+`#include <stdio.h>
+
+int main(void) {
+    double c;
+    /* 读入摄氏度 */
+
+    /* 换算并打印，保留一位小数 */
+    return 0;
+}`,
+       sol:
+`#include <stdio.h>
+
+int main(void) {
+    double c;
+    scanf("%lf", &c);
+    printf("%.1f\\n", c * 1.8 + 32);
+    return 0;
+}`,
+       exp:"输入 36.5，输出 97.7。读 double 用 %lf，读 float 才用 %f。"},
+      {tag:"练习 1.2", title:"算平均分",
+       task:"读入三门课的整数成绩，打印总分和平均分，平均分保留两位小数。",
+       hint:"三个整数相加还是整数，除以 3 之前先转成 double，否则小数部分会被丢掉。",
+       start:
+`#include <stdio.h>
+
+int main(void) {
+    int a, b, c;
+    /* 读入三个成绩 */
+
+    /* 打印总分和平均分 */
+    return 0;
+}`,
+       sol:
+`#include <stdio.h>
+
+int main(void) {
+    int a, b, c;
+    scanf("%d %d %d", &a, &b, &c);
+    int sum = a + b + c;
+    printf("%d %.2f\\n", sum, (double)sum / 3);
+    return 0;
+}`,
+       exp:"输入 90 85 78，总分 253，平均分 84.33。整数相除会截断，一定要先转类型。"}
+    ]
+  }
+};
+
+const CN = ["零","一","二","三","四","五","六","七","八","九","十","十一","十二","十三","十四","十五"];
+let CHAPS = [], LABS = {}, SNIPS = [];
+let view = "know", part = 0;
+
+function chapOf(n){ return CHAPS.find(c => Number(c.n) === Number(n)); }
+function labOf(n){ return LABS[String(n)] || LABS[n] || []; }
+function partName(n){ const c = chapOf(n); const num = CN[Number(n)] || String(n); return num + " · " + (c ? c.title : ""); }
+function escapeHtml(s){ return String(s == null ? "" : s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+
+/* ---------- C 语法着色 ---------- */
+const KW = new Set(["int","char","float","double","void","long","short","unsigned","signed",
+  "struct","union","enum","typedef","const","static","extern","sizeof","return","if","else",
+  "for","while","do","switch","case","break","continue","goto","default","NULL",
+  "register","volatile","auto","inline","restrict","bool","true","false"]);
+const FN = new Set(["printf","scanf","malloc","free","strlen","strcpy","strcmp","memset",
+  "fopen","fclose","fprintf","fscanf","puts","putchar","getchar","gets","sprintf","sscanf",
+  "strcat","strncpy","strncmp","strstr","memcpy","calloc","realloc","exit","abs","fabs",
+  "sqrt","pow","rand","srand","qsort","atoi","atof","fgets","fputs","feof","main"]);
+const RE_NUM = /^(?:0[xX][0-9a-fA-F]+|\d+\.?\d*(?:[eE][-+]?\d+)?)[uUlLfF]*/;
+const RE_ID = /^[A-Za-z_]\w*/;
+const RE_PRE = /^#[ \t]*[A-Za-z_]+(?:[ \t]*<[^>\n]*>)?/;
+
+function highlight(code){
+  let out = "", i = 0;
+  const n = code.length;
+  while(i < n){
+    const c = code[i];
+    if(c === "/" && code[i+1] === "/"){
+      let j = code.indexOf("\n", i); if(j < 0) j = n;
+      out += '<span class="ccm">' + escapeHtml(code.slice(i, j)) + "</span>"; i = j; continue;
+    }
+    if(c === "/" && code[i+1] === "*"){
+      let j = code.indexOf("*/", i + 2); j = j < 0 ? n : j + 2;
+      out += '<span class="ccm">' + escapeHtml(code.slice(i, j)) + "</span>"; i = j; continue;
+    }
+    if(c === '"' || c === "'"){
+      let j = i + 1;
+      while(j < n && code[j] !== c && code[j] !== "\n"){ if(code[j] === "\\") j++; j++; }
+      j = Math.min(j + 1, n);
+      out += '<span class="cst">' + escapeHtml(code.slice(i, j)) + "</span>"; i = j; continue;
+    }
+    if(c === "#"){
+      const m = RE_PRE.exec(code.slice(i));
+      if(m){ out += '<span class="cpr">' + escapeHtml(m[0]) + "</span>"; i += m[0].length; continue; }
+    }
+    if(c >= "0" && c <= "9"){
+      const m = RE_NUM.exec(code.slice(i));
+      if(m){ out += '<span class="cnu">' + m[0] + "</span>"; i += m[0].length; continue; }
+    }
+    if(/[A-Za-z_]/.test(c)){
+      const w = RE_ID.exec(code.slice(i))[0];
+      if(KW.has(w)) out += '<span class="ckw">' + w + "</span>";
+      else if(FN.has(w)) out += '<span class="cbi">' + w + "</span>";
+      else out += w;
+      i += w.length; continue;
+    }
+    out += escapeHtml(c); i++;
+  }
+  return out;
+}
+
+/* ---------- 编辑器 ---------- */
+let EDFS = 14, CID = 0;
+function setFont(d){ EDFS = Math.max(10, Math.min(24, EDFS + d)); document.documentElement.style.setProperty("--edfs", EDFS + "px"); }
+function onEdit(id){
+  setTimeout(function(){ syncStdin(id); }, 0);
+  const ta = document.getElementById(id), hl = document.getElementById("hl-" + id);
+  if(!ta || !hl) return;
+  hl.innerHTML = highlight(ta.value) + "\n";
+  hl.scrollTop = ta.scrollTop; hl.scrollLeft = ta.scrollLeft;
+}
+function syncScroll(id){
+  const ta = document.getElementById(id), hl = document.getElementById("hl-" + id);
+  hl.scrollTop = ta.scrollTop; hl.scrollLeft = ta.scrollLeft;
+}
+function keyHandler(ev, cid){
+  if(ev.key === "Tab"){
+    ev.preventDefault();
+    const t = ev.target, s = t.selectionStart, en = t.selectionEnd;
+    t.value = t.value.slice(0, s) + "    " + t.value.slice(en);
+    t.selectionStart = t.selectionEnd = s + 4; onEdit(cid);
+  } else if(ev.key === "Enter" && (ev.ctrlKey || ev.metaKey || ev.shiftKey)){
+    ev.preventDefault(); runCell(cid);
+  }
+}
+/* 编辑器高度按行数给，短程序不留一大片空白 */
+function cellH(code){
+  const lines = String(code).split(/\n/).length;
+  return Math.min(520, Math.max(150, (lines + 2) * 23));
+}
+function cellHTML(cid, code){
+  const h = cellH(code);
+  return `<div class="cell" id="wrap-${cid}" style="--cellh:${h}px">
+      <div class="gutter"><button class="play" title="运行" onclick="runCell('${cid}')">▶</button><span>In</span></div>
+      <div class="edwrap">
+        <pre class="hl" id="hl-${cid}"></pre>
+        <textarea class="editor" id="${cid}" spellcheck="false" oninput="onEdit('${cid}')" onscroll="syncScroll('${cid}')" onkeydown="keyHandler(event,'${cid}')">${escapeHtml(code)}</textarea>
+      </div>
+    </div>
+    <div class="cell out" id="outcell-${cid}" style="display:none">
+      <div class="gutter"><span class="outp">Out</span></div>
+      <div style="flex:1;min-width:0">
+        <div class="outhead" id="ohead-${cid}" style="display:none"></div>
+        <pre class="output" id="out-${cid}"></pre>
+        <div class="figs" id="figs-${cid}"></div>
+      </div>
+    </div>`;
+}
+
+/* ---------- 知识点 ---------- */
+function renderKnow(){
+  document.getElementById("know-title").textContent = "第" + partName(part);
+  const c = chapOf(part);
+  SNIPS = [];
+  const secs = (c && c.sections) || [];
+  if(!secs.length){
+    document.getElementById("know-body").innerHTML = '<p class="empty">本章讲义还没有内容。</p>';
+    return;
+  }
+  let h = "";
+  secs.forEach(function(s, k){
+    const body = Lecture.render(s.body, function(code, lang){
+      const pre = '<div class="snip"><pre>' + highlight(code) + '</pre>';
+      // 不带语言标记的是运行结果和命令行，不能拿去编译
+      if(lang !== "c") return pre + '</div>';
+      const i = SNIPS.push(code) - 1;
+      return pre + '<div class="snip-bar"><button onclick="sendSnippet(' + i + ')">送到实战里运行</button></div></div>';
+    });
+    h += `<section class="sec" id="sec-${part}-${k}"><div class="sec-h" onclick="toggleSec(this)"><span class="caret"></span>${escapeHtml(s.h)}</div><div class="sec-b">${body}</div></section>`;
+  });
+  document.getElementById("know-body").innerHTML = h;
+}
+function sendSnippet(i){
+  const code = SNIPS[i];
+  setView("lab");
+  const ta = document.querySelector("#ex-demo .cells textarea");
+  if(!ta) return;
+  document.getElementById("ex-demo").style.display = "block";
+  ta.value = code; onEdit(ta.id);
+  document.getElementById("wrap-" + ta.id).style.setProperty("--cellh", cellH(code) + "px");
+  document.getElementById("ex-demo").scrollIntoView({behavior:"smooth", block:"start"});
+  runAll("ex-demo");
+}
+
+/* ---------- 实战 ---------- */
+function exBody(exId, cid, code){
+  return `<div class="cells">${cellHTML(cid, code)}</div>
+      <div class="exbar">
+        <button class="runall" onclick="runAll('${exId}')">▶ 运行</button>`;
+}
+function renderLab(){
+  document.getElementById("lab-title").textContent = "第" + partName(part);
+  const list = labOf(part);
+  const dcid = "c" + (CID++);
+  let h = `<div class="ex" id="ex-demo" style="display:none"><div class="ex-h">示例代码</div><div class="ex-b">
+      ${exBody("ex-demo", dcid, "")}
+        <span class="runstat" id="stat-ex-demo"></span>
+      </div>
+      <div class="stdinrow"><textarea spellcheck="false" placeholder="运行时输入，一行一个"></textarea></div>
+    </div></div>`;
+  if(!list.length){
+    document.getElementById("lab-body").innerHTML = h + '<p class="empty">本章还没有练习。</p>';
+    document.querySelectorAll("#lab-body .cells textarea").forEach(t => onEdit(t.id));
+    return;
+  }
+  list.forEach(function(e, k){
+    const exId = "ex-" + part + "-" + k, cid = "c" + (CID++);
+    const cid2 = cid;
+    h += `<div class="ex" id="${exId}"><div class="ex-h"><span class="tag">${escapeHtml(e.tag)}</span>${escapeHtml(e.title)}</div><div class="ex-b">
+      <p>${escapeHtml(e.task)}</p>
+      <details class="fold"><summary>提示</summary><div class="hint">${escapeHtml(e.hint)}</div></details>
+      ${exBody(exId, cid2, e.start || "")}
+        <button class="submit" onclick="submitEx('${exId}','${idOf(e.tag)}')">提交检查</button>
+        <button onclick="resetEx('${exId}', ${part}, ${k})">重置</button>
+        <span class="runstat" id="stat-${exId}"></span>
+      </div>
+      <div class="stdinrow"><textarea spellcheck="false" placeholder="运行时输入，一行一个"></textarea></div>
+      <div class="judge" id="judge-${exId}" style="display:none"></div>
+      <details class="fold"><summary>参考答案</summary><pre class="hlpre">${highlight(e.sol || "")}</pre>
+        <div class="hint"><span class="exp">预期</span>：${escapeHtml(e.exp)}</div></details>
+    </div></div>`;
+  });
+  document.getElementById("lab-body").innerHTML = h;
+  document.querySelectorAll("#lab-body .cells textarea").forEach(t => onEdit(t.id));
+}
+function idOf(tag){ return String(tag).replace(/^练习\s*/, "").trim(); }
+function resetEx(exId, p, k){
+  const cells = document.querySelector("#" + exId + " .cells"), cid = "c" + (CID++);
+  cells.innerHTML = cellHTML(cid, labOf(p)[k].start || ""); onEdit(cid);
+  document.getElementById("stat-" + exId).textContent = "";
+  const jd = document.getElementById("judge-" + exId); if(jd) jd.style.display = "none";
+}
+function syncStdin(id){
+  const ta = document.getElementById(id); if(!ta) return;
+  const ex = ta.closest(".ex"); if(!ex) return;
+  const row = ex.querySelector(".stdinrow"); if(!row) return;
+  const need = /\b(?:scanf|getchar|gets)\s*\(|\bfgets\s*\([^;]*\bstdin\b/.test(ta.value);
+  row.style.display = need ? "block" : "none";
+}
+function stdinOf(ex){
+  const row = ex && ex.querySelector(".stdinrow");
+  return (row && row.style.display !== "none") ? row.querySelector("textarea").value : "";
+}
+async function runCell(cid){
+  const cells = document.getElementById("wrap-" + cid).closest(".cells");
+  await execute(document.getElementById(cid).value, cid, cells.closest(".ex"));
+}
+async function runAll(exId){
+  const ta = document.querySelector("#" + exId + " .cells textarea");
+  await execute(ta.value, ta.id, document.getElementById(exId));
+}
+async function execute(code, cid, ex){
+  const outcell = document.getElementById("outcell-" + cid), out = document.getElementById("out-" + cid);
+  const head = document.getElementById("ohead-" + cid), figbox = document.getElementById("figs-" + cid);
+  const stat = ex.querySelector(".runstat"), btns = ex.querySelectorAll(".play,.runall");
+  outcell.style.display = "flex";
+  head.style.display = "none"; head.textContent = "";
+  out.textContent = "运行中";
+  if(figbox) figbox.innerHTML = "";
+  stat.textContent = ""; btns.forEach(b => b.disabled = true);
+  const t0 = Date.now();
+  try{
+    const j = await Runner.run(code, stdinOf(ex), "c");
+    out.textContent = j.output || "运行结束，没有输出。别忘了 printf 结果。";
+    if(j.ok === false){
+      head.textContent = /error:/i.test(j.output || "") ? "编译不通过" : "运行出错";
+      head.style.display = "block";
+    }
+    if(figbox && j.figs && j.figs.length)
+      figbox.innerHTML = j.figs.map(b => '<img src="data:image/png;base64,' + b + '">').join("");
+  }catch(err){
+    out.textContent = "没跑起来：" + err;
+  }finally{
+    btns.forEach(b => b.disabled = false);
+    stat.textContent = "耗时 " + ((Date.now() - t0) / 1000).toFixed(1) + " 秒";
+  }
+}
+async function submitEx(exId, id){
+  const ex = document.getElementById(exId);
+  const code = ex.querySelector(".cells textarea").value;
+  const box = document.getElementById("judge-" + exId);
+  const btns = ex.querySelectorAll(".submit,.runall,.play");
+  box.style.display = "block"; box.className = "judge"; box.innerHTML = "正在检查";
+  btns.forEach(b => b.disabled = true);
+  try{
+    const j = await Runner.check(code, id, "c");
+    if(j.ok === null || j.ok === undefined){ box.innerHTML = j.msg || "没法判定"; return; }
+    box.className = "judge " + (j.ok ? "ok" : "no");
+    let h = `<div class="jtitle">${j.ok ? "做对了" : "还没通过"}　${escapeHtml(j.msg || "")}</div><ul>`;
+    for(const it of (j.items || [])) h += `<li class="${it.pass ? "y" : "n"}">${it.pass ? "已完成" : "待完成"}　${escapeHtml(it.desc)}</li>`;
+    h += "</ul>";
+    if(!j.ok && j.output && j.output.trim())
+      h += `<div class="jtitle" style="margin-top:.5rem">你的输出</div><pre style="margin:.2rem 0 0;white-space:pre-wrap">${escapeHtml(j.output.slice(0, 1200))}</pre>`;
+    box.innerHTML = h;
+  }catch(err){
+    box.innerHTML = "没跑起来：" + err;
+  }finally{ btns.forEach(b => b.disabled = false); }
+}
+
+/* ---------- 导航 ---------- */
+function renderParts(){
+  let h = "";
+  for(const c of CHAPS){
+    const i = Number(c.n);
+    h += `<button class="chap ${i === part ? "on" : ""}" onclick="setPart(${i})">${escapeHtml(partName(i))}</button>`;
+    if(i === part) h += `<div class="subs">${subItems()}</div>`;
+  }
+  document.getElementById("parts").innerHTML = h;
+}
+function subItems(){
+  if(view === "know"){
+    const c = chapOf(part);
+    return ((c && c.sections) || []).map((s, k) =>
+      `<button class="sub" onclick="gotoSec(${k})">${escapeHtml(s.h)}</button>`).join("");
+  }
+  return labOf(part).map((e, k) =>
+    `<button class="sub" onclick="gotoEx('ex-${part}-${k}')">${escapeHtml(e.tag)} ${escapeHtml(e.title)}</button>`).join("");
+}
+function toggleSec(h){ h.parentNode.classList.toggle("off"); }
+function gotoSec(k){
+  const el = document.getElementById("sec-" + part + "-" + k);
+  if(el){ el.classList.remove("off"); el.scrollIntoView({behavior:"smooth", block:"start"}); }
+}
+function gotoEx(id){ const el = document.getElementById(id); if(el) el.scrollIntoView({behavior:"smooth", block:"start"}); }
+function setPart(p){
+  part = Number(p); renderParts();
+  view === "know" ? renderKnow() : renderLab();
+  window.scrollTo({top:0, behavior:"smooth"});
+}
+function setView(v){
+  if(view === v && document.getElementById("view-" + v).classList.contains("on")) return;
+  view = v;
+  document.getElementById("seg-know").classList.toggle("on", v === "know");
+  document.getElementById("seg-lab").classList.toggle("on", v === "lab");
+  document.getElementById("view-know").classList.toggle("on", v === "know");
+  document.getElementById("view-lab").classList.toggle("on", v === "lab");
+  renderParts();
+  v === "know" ? renderKnow() : renderLab();
+  window.scrollTo({top:0, behavior:"smooth"});
+}
+/* 主题在 assets/theme.js 里，三个页面共用一个键 */
+
+/* ---------- 启动 ---------- */
+function footText(){
+  const n = CHAPS.length, m = Object.keys(LABS).reduce((s, k) => s + LABS[k].length, 0);
+  return "YF308AI实验室开放学习平台　C 语言入门 · 动手实践　" + n + " 章，" + m + " 道练习。<br><span id=\"engtag\"></span>";
+}
+async function loadCourse(){
+  try{
+    const r = await fetch("data/course.json", {cache:"no-store"});
+    if(r.ok){
+      const j = await r.json();
+      if(j && j.chapters && j.chapters.length) return j;
+    }
+  }catch(err){}
+  return DEMO;
+}
+(async function init(){
+  const data = await loadCourse();
+  CHAPS = data.chapters.slice().sort((a, b) => Number(a.n) - Number(b.n));
+  LABS = data.lab || {};
+  part = Number(CHAPS[0].n);
+  document.getElementById("foot").innerHTML = footText();
+  renderParts(); renderKnow();
+  const tag = function(s){ const t = document.getElementById("engtag"); if(t) t.textContent = s; };
+  tag("正在加载 C 编译器");
+  Runner.boot("c", function(s){ if(s) tag(s); }).then(function(r){
+    tag(r.label);
+  }).catch(function(err){
+    tag("C 编译器没加载起来：" + (err && err.message || err) + "。刷新页面重试。");
+  });
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,1506 @@
+<!doctype html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Python 入门 · 动手实践 · YF308AI实验室开放学习平台</title>
+<link rel="icon" href="../assets/favicon.png">
+<link rel="apple-touch-icon" href="../assets/logo-180.png">
+<style>
+:root{
+  --bg:#ffffff; --fg:#1b1b1b; --muted:#6b6b6b; --line:#e6e6e6; --card:#fafafa;
+  --code-bg:#f6f6f6; --accent:#222; --ok:#2f7d3a; --warn:#8a6d00; --pill:#f0f0f0;
+  --shadow:0 1px 3px rgba(0,0,0,.06),0 8px 24px rgba(0,0,0,.05);
+}
+@media (prefers-color-scheme: dark){
+  :root{ --bg:#151515; --fg:#e9e9e9; --muted:#9b9b9b; --line:#2b2b2b; --card:#1d1d1d;
+    --code-bg:#191919; --accent:#e9e9e9; --ok:#7bc888; --warn:#d8bd5a; --pill:#242424;
+    --shadow:0 1px 3px rgba(0,0,0,.4),0 10px 30px rgba(0,0,0,.35);}
+}
+:root[data-theme="light"]{ --bg:#fff;--fg:#1b1b1b;--muted:#6b6b6b;--line:#e6e6e6;--card:#fafafa;--code-bg:#f6f6f6;--accent:#222;--pill:#f0f0f0;}
+:root[data-theme="dark"]{ --bg:#151515;--fg:#e9e9e9;--muted:#9b9b9b;--line:#2b2b2b;--card:#1d1d1d;--code-bg:#191919;--accent:#e9e9e9;--pill:#242424;}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--fg);
+  font-family:-apple-system,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+  line-height:1.75;font-size:16px;-webkit-font-smoothing:antialiased}
+header{text-align:center;padding:3rem 1.2rem 1.4rem}
+h1{font-size:1.9rem;margin:0 0 .5rem;letter-spacing:.01em;font-weight:700}
+.sub{color:var(--muted);margin:0 auto;max-width:660px;font-size:.98rem}
+.seg{display:flex;gap:.3rem;justify-content:center;margin:1.6rem auto 0;
+  background:var(--pill);border-radius:999px;padding:.3rem;width:max-content}
+.seg button{border:0;background:transparent;color:var(--muted);font-size:1rem;
+  padding:.5rem 1.6rem;border-radius:999px;cursor:pointer;font-weight:600;transition:.15s}
+.seg button.on{background:var(--bg);color:var(--fg);box-shadow:var(--shadow)}
+.parts{position:sticky;top:0;z-index:20;background:var(--bg);
+  border-bottom:1px solid var(--line);padding:.7rem 1rem;margin-top:1.4rem;
+  display:flex;gap:.4rem;justify-content:center;flex-wrap:wrap}
+.parts button{border:1px solid var(--line);background:var(--bg);color:var(--fg);
+  font-size:.86rem;padding:.32rem .8rem;border-radius:999px;cursor:pointer;transition:.15s}
+.parts button:hover{background:var(--card)}
+.parts button.on{background:var(--accent);color:var(--bg);border-color:var(--accent)}
+main{max-width:1000px;margin:0 auto;padding:1.6rem 1.2rem 4rem}
+.part-title{font-size:1.4rem;font-weight:700;margin:.4rem 0 1.4rem;
+  padding-bottom:.7rem;border-bottom:2px solid var(--line)}
+.pages{display:flex;flex-direction:column;align-items:center;gap:1.4rem}
+.page{width:100%;max-width:820px;border:1px solid var(--line);border-radius:10px;
+  overflow:hidden;box-shadow:var(--shadow);background:#fff}
+.page img{display:block;width:100%;height:auto;aspect-ratio:210/297}
+.page .cap{text-align:center;color:var(--muted);font-size:.78rem;padding:.35rem;
+  background:var(--card);border-top:1px solid var(--line)}
+.lead{color:var(--muted);max-width:820px;margin:0 auto 1.2rem;text-align:center;font-size:.92rem}
+.summary{max-width:860px;margin:0 auto 1.6rem;border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.summary summary{cursor:pointer;padding:.8rem 1.1rem;font-weight:700;background:var(--card);user-select:none}
+.summary table{width:100%;border-collapse:collapse;font-size:.86rem}
+.summary th,.summary td{text-align:left;padding:.55rem .8rem;border-top:1px solid var(--line);vertical-align:top}
+.summary th{color:var(--muted);font-weight:600;background:var(--card)}
+.summary td:first-child{white-space:nowrap;font-weight:600}
+.ex{border:1px solid var(--line);border-radius:14px;margin:1.2rem auto;max-width:860px;
+  overflow:hidden;box-shadow:var(--shadow)}
+.ex-h{background:var(--card);padding:.9rem 1.1rem;font-weight:700;display:flex;gap:.6rem;align-items:baseline}
+.ex-h .tag{font-size:.72rem;color:var(--bg);background:var(--accent);border-radius:20px;padding:.12rem .6rem}
+.ex-b{padding:.5rem 1.1rem 1.1rem}
+.ex-b p{margin:.75rem 0}
+.data{color:var(--warn);font-weight:700}
+details.fold{margin:.6rem 0;border:1px solid var(--line);border-radius:9px;background:var(--code-bg)}
+details.fold>summary{cursor:pointer;padding:.6rem .95rem;font-size:.9rem;user-select:none;font-weight:600}
+details.fold>summary:hover{color:var(--accent)}
+details.fold pre{margin:0;padding:.95rem 1.1rem;overflow-x:auto;background:var(--code-bg);
+  border-top:1px solid var(--line);font-size:.82rem;line-height:1.55}
+code{font-family:var(--mono)}
+.hint{padding:.65rem .95rem;color:var(--muted);font-size:.92rem}
+.exp{color:var(--ok);font-weight:700}
+/* Notebook 风格代码单元 + 语法配色 */
+.cell{display:flex;border:1px solid #2b2b2b;border-radius:8px;overflow:hidden;background:#1e1e1e;margin-top:.4rem}
+.cell.out{margin-top:.5rem}
+.gutter{flex:0 0 54px;background:#181818;padding:.7rem .45rem;text-align:right;
+  font-family:var(--mono);font-size:.72rem;color:#6a9bd1;user-select:none;
+  display:flex;flex-direction:column;align-items:flex-end;gap:.5rem}
+.gutter .play{border:0;background:transparent;color:#4ec9b0;cursor:pointer;font-size:1rem;padding:0;line-height:1}
+.gutter .play:hover{color:#7fe9d4}
+.gutter .delc{border:0;background:transparent;color:#666;cursor:pointer;font-size:.95rem;padding:0;line-height:1;margin-top:auto}
+.gutter .delc:hover{color:#e06c75}
+.gutter .outp{color:#c586c0}
+.edwrap{position:relative;flex:1;min-width:0}
+.edwrap pre.hl,.edwrap textarea{margin:0;padding:.7rem 1rem;box-sizing:border-box;
+  font-family:var(--mono);font-size:var(--edfs,14px);line-height:1.6;
+  tab-size:4;white-space:pre;overflow-wrap:normal;letter-spacing:0;border:0}
+.edwrap pre.hl{position:absolute;inset:0;overflow:hidden;color:#d4d4d4;pointer-events:none}
+.edwrap textarea{position:relative;display:block;width:100%;height:var(--cellh,300px);min-height:110px;
+  outline:0;resize:vertical;background:transparent;color:transparent;caret-color:#e6e6e6;overflow:auto}
+.edwrap textarea::selection{background:#264f78;color:transparent}
+.hl .ckw{color:#569cd6}.hl .cst{color:#ce9178}.hl .ccm{color:#6a9955}.hl .cnu{color:#b5cea8}.hl .cfn{color:#dcdcaa}.hl .cbi{color:#4ec9b0}
+.exbar{display:flex;gap:.55rem;align-items:center;margin:.6rem 0;flex-wrap:wrap}
+.exbar button{border:1px solid var(--line);background:var(--bg);color:var(--fg);font-size:.85rem;padding:.44rem .9rem;border-radius:6px;cursor:pointer}
+.exbar button:hover{background:var(--card)}
+.exbar .runall{background:#0e639c;color:#fff;border-color:#0e639c;font-weight:600}
+.exbar .runall:hover{background:#1177bb}
+.exbar .runall:disabled{opacity:.5;cursor:default}
+.runstat{color:var(--muted);font-size:.85rem}
+.dl{font-size:.72rem;font-weight:400;margin-left:.5rem;padding:.2rem .55rem;border:1px solid var(--line);
+  border-radius:5px;color:var(--muted);text-decoration:none;vertical-align:middle;white-space:nowrap}
+.dl:hover{border-color:var(--fg);color:var(--fg)}
+.exbar .submit{background:#2e7d32;color:#fff;border-color:#2e7d32;font-weight:600}
+.exbar .submit:hover{background:#388e3c}
+.exbar .submit:disabled{opacity:.5;cursor:default}
+.judge{margin:.55rem 0 0;padding:.7rem .9rem;border:1px solid var(--line);border-radius:8px;
+  background:var(--bg);font-size:.87rem;line-height:1.7}
+.judge.ok{border-color:#2e7d32}
+.judge.no{border-color:#b8860b}
+.judge .jtitle{font-weight:600;margin-bottom:.35rem}
+.judge ul{margin:.3rem 0 0;padding-left:1.2rem}
+.judge li{margin:.12rem 0}
+.judge li.y{color:#2e7d32}
+.judge li.n{color:var(--muted)}
+.output{margin:0;padding:.7rem 1rem;background:#1e1e1e;color:#d4d4d4;flex:1;min-width:0;
+  font-family:var(--mono);font-size:var(--edfs,14px);line-height:1.55;white-space:pre-wrap;max-height:400px;overflow:auto}
+.fontctl{display:flex;align-items:center;gap:.4rem;margin-top:1.4rem;padding:0 .4rem;color:var(--muted);font-size:.82rem}
+.fontctl button{border:1px solid var(--line);background:var(--bg);color:var(--fg);width:28px;height:26px;border-radius:6px;cursor:pointer;font-size:.85rem}
+.fontctl button:hover{background:var(--card)}
+.view{display:none}
+.view.on{display:block}
+footer{color:var(--muted);font-size:.86rem;padding:1.6rem 1.2rem 3rem;border-top:1px solid var(--line);max-width:1000px;margin:0 auto}
+footer code{background:var(--code-bg);padding:.1rem .4rem;border-radius:5px}
+.theme{position:fixed;top:1rem;right:1rem;border:1px solid var(--line);background:var(--bg);
+  color:var(--fg);border-radius:999px;width:38px;height:38px;cursor:pointer;font-size:1rem;z-index:30}
+.app{display:flex;align-items:flex-start;max-width:1180px;margin:0 auto}
+.sidebar{position:sticky;top:0;align-self:flex-start;width:212px;flex:0 0 212px;height:100vh;
+  overflow-y:auto;border-right:1px solid var(--line);padding:1.5rem .8rem}
+.sidebar .brand{margin:0 .4rem 1.1rem}
+.sidebar .brand .hbtn{border:0;background:transparent;color:var(--muted);cursor:pointer;font-size:.82rem;padding:0 0 .35rem}
+.sidebar .brand .hbtn:hover{color:var(--fg)}
+.sidebar .brand .tname{font-weight:700;font-size:1.02rem;line-height:1.4}
+.home{display:none;flex-direction:column;align-items:center;justify-content:center;min-height:82vh;text-align:center;padding:2rem 1.2rem}
+.home.show{display:flex}
+.home-title{font-size:2rem;font-weight:700;margin:0 0 .5rem}
+/* 等宽字体原来有五种写法，统一成一个变量，末尾给中文指定回退 */
+:root{--mono:"Cascadia Code",Consolas,"SF Mono",Menlo,"Microsoft YaHei",monospace}
+:root{--headbg:#ebedf2}
+:root[data-theme=dark]{--headbg:#242731}
+/* 按钮和输入框默认不继承字体，会掉回 Arial，和正文不是一套 */
+button,input,select,textarea{font-family:inherit}
+.plate{display:flex;flex-direction:column;align-items:center;gap:14px;margin-bottom:26px}
+.plate img{width:92px;height:92px}
+.plate .pname{font-size:1.05rem;font-weight:650;letter-spacing:.04em}
+.brand-mini{display:flex;align-items:center;gap:9px;margin-bottom:10px}
+.brand-mini img{width:26px;height:26px}
+.brand-mini span{font-size:12.5px;font-weight:600;color:var(--muted);line-height:1.3}
+.backhome{position:fixed;top:14px;left:16px;z-index:40;font-size:12.5px;color:var(--muted);
+  background:var(--card);border:1px solid var(--line);border-radius:9px;padding:7px 13px;text-decoration:none}
+.backhome:hover{color:var(--fg)}
+.stdinrow{display:none;margin:8px 0 0}
+.stdinrow textarea{width:100%;min-height:54px;background:var(--code-bg);color:var(--fg);border:1px solid var(--line);
+  border-radius:9px;padding:10px 13px;font-size:13.5px;font-family:var(--mono);resize:vertical}
+.figs{display:flex;flex-wrap:wrap;gap:10px;padding:0 0 6px}
+.figs img{max-width:100%;background:#fff;border-radius:8px;padding:6px;border:1px solid var(--line)}
+.modesw{display:inline-flex;gap:0;margin-left:14px;vertical-align:middle;border:1px solid var(--line);border-radius:9px;overflow:hidden}
+.modesw button{background:var(--card);color:var(--muted);border:none;padding:7px 16px;font-size:13px;
+  font-weight:600;cursor:pointer;font-family:inherit}
+.modesw button.on{background:var(--accent);color:#fff}
+/* 容器是居中的弹性列，不给宽度的话每节会按自己内容撑开，窄的那节左边就对不齐 */
+.lecsec{width:100%;max-width:820px;min-width:0;margin:0 auto 46px;padding:0 4px}
+.lecsec-h{display:flex;align-items:center;gap:10px;font-size:1.16rem;font-weight:680;margin:0 0 22px;
+  padding:12px 18px;background:var(--headbg);border:1px solid var(--line);border-radius:10px;
+  cursor:pointer;user-select:none}
+.lecsec-h:hover .caret{color:var(--fg)}
+.caret{flex:none;width:14px;color:var(--muted);font-size:11px;transition:transform .15s}
+.caret::before{content:"▼";display:block}
+.lecsec.off .caret{transform:rotate(-90deg)}
+.lecsec.off .lecsec-b{display:none}
+.lecsec.off .lecsec-h{margin-bottom:0}
+.lecsec.off{margin-bottom:14px}
+.lecsec p{margin:0 0 22px;line-height:1.95}
+.lecsec ul,.lecsec ol{margin:0 0 22px;padding-left:24px}
+.lecsec li{margin:8px 0;line-height:1.85}
+.lecsec code{background:var(--code-bg);border:1px solid var(--line);border-radius:5px;padding:1px 6px;font-size:.88em}
+.lecsec img{max-width:100%;border-radius:8px;border:1px solid var(--line)}
+.lecsec-b>:last-child{margin-bottom:0}
+.lec-h{font-size:1.04rem;font-weight:700;margin:38px 0 16px;line-height:1.55}
+.lec-cap{font-size:13px;font-weight:650;color:var(--muted);margin:0 0 8px}
+/* 核心段和关键术语的配色，跟着主题走。 */
+:root{ --fig:#30385c; --fig-soft:rgba(48,56,92,.07) }
+:root[data-theme=dark]{ --fig:#9fb0e8; --fig-soft:rgba(159,176,232,.10) }
+
+.lec-core{position:relative;margin:0 0 26px;padding:20px 22px 6px;border:1px solid var(--fig);
+  border-radius:12px;background:var(--fig-soft)}
+.lec-core-k{position:absolute;top:-10px;left:18px;background:var(--bg);padding:0 8px;
+  font-size:12px;font-weight:700;letter-spacing:.5px;color:var(--fig)}
+.lec-core p{margin:0 0 14px;line-height:1.9}
+.lec-key{background:var(--fig-soft);color:inherit;border-radius:4px;padding:1px 5px;font-weight:650}
+.lec-codewrap{position:relative;margin:14px 0}
+.lec-code{background:var(--code-bg);border:1px solid var(--line);border-radius:11px;padding:16px 18px;margin:0;
+  overflow-x:auto;font-family:var(--mono);font-size:13.5px;line-height:1.75}
+.lec-code code{background:none;border:none;padding:0;font-size:1em}
+.runsnip{position:absolute;top:9px;right:10px;background:var(--card);border:1px solid var(--line);
+  color:var(--muted);border-radius:8px;padding:5px 12px;font-size:12px;font-weight:600;cursor:pointer;
+  font-family:inherit;opacity:0;transition:opacity .15s}
+.lec-codewrap:hover .runsnip{opacity:1}
+.runsnip:hover{color:var(--fg);border-color:var(--accent)}
+.lec-tbl{overflow-x:auto;border:1px solid var(--line);border-radius:10px;margin:14px 0}
+.lec-tbl table{width:100%;border-collapse:collapse;font-size:14px}
+.lec-tbl th,.lec-tbl td{text-align:left;padding:10px 15px;border-bottom:1px solid var(--line);vertical-align:top}
+.lec-tbl thead th{background:var(--code-bg);font-size:12px;font-weight:700;color:var(--muted)}
+.lec-tbl tbody tr:last-child td{border-bottom:none}
+.home-sub{color:var(--muted);max-width:560px;margin:0 0 2.4rem;font-size:.98rem;line-height:1.7}
+.cards{display:flex;gap:1.4rem;flex-wrap:wrap;justify-content:center}
+.card{width:300px;text-align:left;border:1px solid var(--line);background:var(--card);border-radius:16px;padding:1.7rem 1.5rem;cursor:pointer;box-shadow:var(--shadow);transition:.15s}
+.card:hover{transform:translateY(-3px);border-color:var(--accent)}
+.card-t{font-size:1.3rem;font-weight:700;margin-bottom:.55rem}
+.card-s{color:var(--muted);font-size:.92rem;line-height:1.65}
+.card-n{margin-top:1.1rem;font-size:.8rem;color:var(--accent);font-weight:700}
+.vtoggle{display:flex;gap:.25rem;background:var(--pill);border-radius:999px;padding:.25rem;margin-bottom:1.1rem}
+.vtoggle button{flex:1;border:0;background:transparent;color:var(--muted);padding:.45rem 0;
+  border-radius:999px;cursor:pointer;font-weight:600;font-size:.92rem}
+.vtoggle button.on{background:var(--bg);color:var(--fg);box-shadow:var(--shadow)}
+.chaps{display:flex;flex-direction:column;gap:.15rem}
+.chaps .chap{text-align:left;border:0;background:transparent;color:var(--fg);
+  padding:.52rem .6rem;border-radius:8px;cursor:pointer;font-size:.9rem;transition:.12s;width:100%}
+.chaps .chap:hover{background:var(--card)}
+.chaps .chap.on{background:var(--accent);color:var(--bg);font-weight:600}
+.subs{display:flex;flex-direction:column;gap:.04rem;margin:.15rem 0 .4rem;
+  border-left:2px solid var(--line);padding-left:.3rem;margin-left:.5rem}
+.chaps .sub{display:block;text-align:left;border:0;background:transparent;color:var(--muted);
+  margin:0;max-width:none;width:100%;
+  padding:.32rem .55rem;border-radius:6px;cursor:pointer;font-size:.79rem;line-height:1.35;transition:.12s}
+.chaps .sub:hover{background:var(--card);color:var(--fg)}
+.content{flex:1;min-width:0;padding:1.8rem 1.7rem 4rem}
+.content .part-title{margin-top:0}
+@media(max-width:820px){
+  .app{flex-direction:column}
+  .sidebar{position:static;width:auto;flex:none;height:auto;border-right:0;border-bottom:1px solid var(--line);padding:1rem}
+  .sidebar .brand{text-align:center}
+  .chaps{flex-direction:row;flex-wrap:wrap;justify-content:flex-start}
+  .chaps .chap{border:1px solid var(--line);border-radius:999px;padding:.32rem .8rem;font-size:.84rem;width:auto}
+  .subs{flex-basis:100%;flex-direction:column;justify-content:flex-start;align-items:flex-start;border-left:2px solid var(--line);padding-left:.4rem;margin:.15rem 0 .4rem 1rem}
+  .chaps .sub{display:block;text-align:left;border:0;border-radius:6px;padding:.3rem .5rem;margin:0;max-width:none;width:100%}
+  .content{padding:1.3rem 1.1rem 3rem}
+}
+
+/* 运行设置面板 */
+.gear{position:fixed;top:14px;right:58px;z-index:60;background:var(--card);color:var(--fg);
+  border:1px solid var(--line);border-radius:9px;width:34px;height:34px;cursor:pointer;
+  font-size:15px;transition:border-color .15s}
+.gear:hover{border-color:var(--fg)}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:100;display:flex;
+  align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(3px)}
+.modal-box{background:var(--card);color:var(--fg);border:1px solid var(--line);border-radius:14px;
+  max-width:470px;width:100%;padding:26px 28px 22px;max-height:88vh;overflow:auto;
+  box-shadow:0 18px 50px rgba(0,0,0,.22)}
+.steps{font-size:11px;color:var(--dim);letter-spacing:.08em;margin-bottom:7px}
+.modal-box h3{margin:0 0 7px;font-size:19px;font-weight:650;letter-spacing:-.01em}
+.modal-box .sub2{color:var(--dim);font-size:13px;line-height:1.65;margin:0 0 18px}
+/* 选项卡 */
+.rmode{display:block;padding:13px 15px;border:1px solid var(--line);border-radius:10px;
+  margin-bottom:9px;cursor:pointer;transition:border-color .15s,background .15s}
+.rmode:hover{border-color:var(--dim)}
+.rmode.on{border-color:var(--fg);background:var(--bg)}
+.rmode input{margin-right:9px}
+.rmode b{font-size:14.5px;font-weight:600}
+.rmode span{display:block;color:var(--dim);font-size:12.5px;line-height:1.6;margin-top:5px;padding-left:23px}
+/* SSH 提示条 */
+.sshhint{background:var(--bg);border:1px solid var(--line);border-radius:9px;padding:11px 13px;margin-bottom:16px}
+.sshhint .t{font-size:11.5px;color:var(--dim);margin-bottom:6px}
+.sshhint code{font-family:var(--mono);font-size:12.5px;color:var(--fg);word-break:break-all}
+.sshhint code b{font-weight:700;border-bottom:2px solid var(--dim);padding-bottom:1px}
+/* 表单 */
+.fgrid{display:grid;grid-template-columns:1fr 1fr;gap:12px 12px;margin-bottom:14px}
+.fgrid .full{grid-column:1 / -1}
+.fld label{display:block;font-size:11.5px;color:var(--dim);margin-bottom:5px}
+.fld input{width:100%;box-sizing:border-box;padding:8px 11px;font-size:13px;
+  border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--fg);
+  font-family:inherit;transition:border-color .15s}
+.fld input:focus{outline:none;border-color:var(--fg)}
+.fld input::placeholder{color:var(--dim);opacity:.6}
+/* 测试连接 */
+.testrow{display:flex;gap:11px;align-items:center;margin-bottom:14px}
+.testrow button{padding:7px 15px;font-size:12.5px;border-radius:8px;border:1px solid var(--line);
+  background:var(--bg);color:var(--fg);cursor:pointer;font-family:inherit;flex:none;transition:border-color .15s}
+.testrow button:hover{border-color:var(--fg)}
+.tres{font-size:12px;color:var(--dim);line-height:1.55}
+.tres.good{color:#3a7d44} .tres.bad{color:#a8443a}
+/* 环境结论 */
+.envbox{font-size:13px;line-height:1.7;padding:12px 14px;border-radius:9px;margin-bottom:14px;
+  background:var(--bg);border:1px solid var(--line);color:var(--fg)}
+.envbox.good{border-color:#3a7d44}
+.envbox.warnbox{border-color:#9a7b2f}
+.cmd{font-family:var(--mono);font-size:12.5px;background:var(--bg);
+  border:1px solid var(--line);border-radius:8px;padding:10px 12px;margin:8px 0;user-select:all;
+  word-break:break-all;color:var(--fg)}
+/* 说明与按钮 */
+.note{font-size:11.5px;color:var(--dim);line-height:1.75;margin:0}
+.mbtns{display:flex;gap:9px;justify-content:flex-end;margin-top:20px;
+  padding-top:16px;border-top:1px solid var(--line)}
+.mbtns button{padding:8px 18px;font-size:13px;border-radius:8px;border:1px solid var(--line);
+  background:var(--bg);color:var(--fg);cursor:pointer;font-family:inherit;transition:.15s}
+.mbtns button:hover{border-color:var(--fg)}
+.mbtns .ok{background:var(--fg);color:var(--card);border-color:var(--fg)}
+.mbtns .ok:hover{opacity:.85}
+</style>
+</head>
+<script src="../assets/theme.js"></script>
+<script src="../assets/runner.js"></script>
+<script src="../assets/lecture.js"></script>
+<body>
+<button class="theme" onclick="toggleTheme()" title="切换深浅色">◐</button>
+<div id="home" class="home show">
+  <div class="plate"><img src="../assets/logo.png" alt="YF308AI实验室开放学习平台"><div class="pname">YF308AI实验室开放学习平台</div></div>
+  <h1 class="home-title">Python 入门 · 动手实践</h1>
+  <p class="home-sub">从零开始学 Python，十二章覆盖基础语法到数据分析。每章先跑通一个小程序，再讲清背后的原理。讲义可以下载 PDF。</p>
+  <div class="cards">
+    <button class="card" onclick="setTrack('py')">
+      <div class="card-t">Python 基础</div>
+      <div class="card-s">跑通第一个程序、变量与类型、列表与字典、分支与循环、函数</div>
+      <div class="card-n">第 0 到 11 章 · 24 道练习</div>
+    </button>
+  </div>
+</div>
+<div class="app" id="app" style="display:none">
+  <aside class="sidebar">
+    <div class="brand" id="brand"></div>
+    <div class="vtoggle">
+      <button id="seg-know" class="on" onclick="setView('know')">知识点</button>
+      <button id="seg-lab" onclick="setView('lab')">实战</button>
+    </div>
+    <nav class="chaps" id="parts"></nav>
+    <div class="fontctl">代码字号 <button onclick="setFont(-1)">A-</button><button onclick="setFont(1)">A+</button></div>
+  </aside>
+  <div class="content">
+    <div id="view-know" class="view on">
+      <div class="part-title" id="know-title"></div>
+      <div class="pages" id="know-pages"></div>
+    </div>
+    <div id="view-lab" class="view">
+      <div class="part-title" id="lab-title"></div>
+      <details class="summary" id="lab-summary"></details>
+      <p class="lead">像 notebook 一样写代码。可以添加多个单元，点某个单元的运行三角会连同它上面的单元一起执行，运行全部则跑整段。快捷键 Ctrl+Enter 运行本单元，Shift+Enter 运行并跳到下一单元。代码框右下角能拖拽调高，左侧栏可调字号。训练类任务把轮数控制在一两分钟内，超过 180 秒会被终止。</p>
+      <div id="lab-body"></div>
+    </div>
+    <footer id="foot"></footer>
+  </div>
+</div>
+<script>
+const PART_NAMES = {0:"零 · 跑通第一个程序",1:"一 · 变量和基本类型",2:"二 · 列表和字典",3:"三 · 分支和循环",4:"四 · 函数",5:"五 · 模块和第三方库",6:"六 · 文件和数据格式",7:"七 · 出错了怎么办",8:"八 · 类和对象",9:"九 · 数组运算",10:"十 · 表格和画图",11:"十一 · 综合项目"};
+const PAGE_COUNT = {0:5,1:5,2:5,3:6,4:6,5:5,6:5,7:5,8:6,9:5,10:6,11:5};
+const SECMAP = {"0": [["0.1 先让电脑说句话", 1], ["0.2 Python 到底是什么", 2], ["0.3 两种用法，交互和脚本", 2], ["0.4 代码怎么写才不出错", 3], ["0.5 用什么写代码", 4], ["0.6 报错了怎么办", 4], ["0.7 小结", 5]], "1": [["1.1 先算一份成绩单", 1], ["1.2 变量就是给数据起个名字", 2], ["1.3 数字有两种", 2], ["1.4 文字叫字符串", 3], ["1.5 真假和判断", 4], ["1.6 类型不对就会出错", 4], ["1.7 小结", 5]], "2": [["2.1 先做一个通讯录", 1], ["2.2 列表，一串有顺序的数据", 2], ["2.3 字典，按名字取值", 3], ["2.4 两者怎么配合", 4], ["2.5 一个容易踩的坑", 4], ["2.6 小结", 5]], "3": [["3.1 先做一个猜数字游戏", 1], ["3.2 分支，让程序会拐弯", 2], ["3.3 for 循环，把一批数据走一遍", 3], ["3.4 while 循环，不知道要转多少圈时用", 3], ["3.5 把循环写短：推导式", 4], ["3.6 回头看那个游戏", 5], ["3.7 小结", 6]], "4": [["4.1 先把游戏拆开", 1], ["4.2 定义和调用", 2], ["4.3 参数，把数据传进去", 2], ["4.4 返回值，把结果拿出来", 3], ["4.5 函数里的变量出不来", 4], ["4.6 给函数写说明", 5], ["4.7 什么时候该写成函数", 5], ["4.8 小结", 6]], "5": [["5.1 先统计一段文字的高频词", 1], ["5.2 import 的几种写法", 2], ["5.3 标准库，装完 Python 就有的工具", 2], ["5.4 装别人写的库", 3], ["5.5 虚拟环境，别让项目互相打架", 4], ["5.6 小结", 4]], "6": [["6.1 先把通讯录存下来", 1], ["6.2 读写文件", 2], ["6.3 路径怎么写", 3], ["6.4 JSON，存有结构的数据", 3], ["6.5 CSV，存表格数据", 4], ["6.6 小结", 5]], "7": [["7.1 先做一个不会崩的计算器", 1], ["7.2 try 和 except", 1], ["7.3 常见错误对照", 3], ["7.4 主动抛出错误", 3], ["7.5 怎么把问题找出来", 3], ["7.6 小结", 4]], "8": [["8.1 先用类重写通讯录", 1], ["8.2 类和实例", 2], ["8.3 init 和属性", 3], ["8.4 几个有用的特殊方法", 3], ["8.5 继承，站在已有的类上改", 4], ["8.6 什么时候该用类", 5], ["8.7 小结", 5]], "9": [["9.1 先算一个班的成绩", 1], ["9.2 数组和列表有什么不同", 2], ["9.3 形状和维度", 2], ["9.4 取值和筛选", 3], ["9.5 广播，形状不同也能算", 4], ["9.6 常用函数速查", 4], ["9.7 小结", 5]], "10": [["10.1 先分析一份销售数据", 1], ["10.2 DataFrame，带列名的表", 2], ["10.3 筛选和新增列", 3], ["10.4 分组汇总", 4], ["10.5 处理缺失值", 4], ["10.6 把结果画出来", 5], ["10.7 小结", 5]], "11": [["11.1 要做的事", 1], ["11.2 第一步，准备数据", 1], ["11.3 第二步，读进来先看看", 2], ["11.4 第三步，清洗", 2], ["11.5 第四步，分析", 3], ["11.6 第五步，出图", 4], ["11.7 这个流程为什么这么排", 4], ["11.8 学完这十二章之后", 5]]};
+const TRACKS = {py:{name:"Python 基础",parts:[0,1,2,3,4,5,6,7,8,9,10,11]}};
+const VER="v2";
+const PDFS = {0:"ch00_跑通第一个程序.pdf",1:"ch01_变量和基本类型.pdf",2:"ch02_列表和字典.pdf",3:"ch03_分支和循环.pdf",4:"ch04_函数.pdf",5:"ch05_模块和第三方库.pdf",6:"ch06_文件和数据格式.pdf",7:"ch07_出错了怎么办.pdf",8:"ch08_类和对象.pdf",9:"ch09_数组运算.pdf",10:"ch10_表格和画图.pdf",11:"ch11_综合项目.pdf"};   // 每次更新页面图后改这个，强制浏览器重新加载图片
+let track=null, view="know", part=0;
+
+// 讲义实战 vs 练习 总览
+const SUMMARY = [
+["零","装好环境，交互模式与脚本，第一个程序","自我介绍卡片；四种常见报错各触发一次"],
+["一","成绩单：变量、数字、字符串、格式化输出","单位换算算 BMI；找零钱拆面额"],
+["二","通讯录：列表套字典，增删改查","统计单词与字母；图书清单算库存"],
+["三","猜数字游戏：分支、循环、break","打印乘法表；筛出 50 以内的质数"],
+["四","把游戏拆成函数：参数、返回值、作用域","成绩统计函数组；密码强度检查"],
+["五","词频统计：import、标准库、pip、虚拟环境","随机点名器；统计中文字频"],
+["六","通讯录存盘：文件读写、路径、JSON、CSV","成绩存两种格式；统计文件行数词数"],
+["七","不会崩的计算器：异常捕获、raise、调试","安全的多级取值；带校验的成绩录入"],
+["八","用类重写通讯录：类、实例、继承","购物车类；继承做储蓄与信用账户"],
+["九","成绩数组：形状、axis、筛选、广播","气温数组分析；归一化与分段统计"],
+["十","销售表：DataFrame、分组汇总、缺失值、画图","员工表分析；处理有缺失的表"],
+["十一","完整项目：造数、清洗、分析、出图","图书馆借阅分析；把结果存成报告"],
+];
+
+const LAB = {
+0:[{tag:"练习 0.1",title:"做一张自我介绍卡片",
+  task:"用 print 打出一张卡片：上下各一行等号分隔线，中间是姓名、城市、开始学编程的年份。分隔线用乘号重复字符生成，不要一个个敲。",
+  hint:"字符串乘一个数字可以重复它，比如 \"=\" 乘 24。变量先存好，再一行行 print 出来。",
+  start:
+`# 把下面三个信息换成你自己的
+name = "阿里"
+city = "杭州"
+year = 2019
+
+# TODO: 打印一行 24 个等号的分隔线
+# TODO: 分别打印姓名、城市、年份三行
+# TODO: 再打印一行分隔线`,
+  sol:
+`name = "阿里"
+city = "杭州"
+year = 2019
+
+print("=" * 24)
+print("姓名：" + name)
+print("城市：" + city)
+print("入门年份：" + str(year))
+print("=" * 24)`,
+  exp:"输出一张四四方方的卡片。注意年份是数字，用加号拼进字符串前必须先用 str 转换，否则会报 TypeError。"},
+{tag:"练习 0.2",title:"认识四种常见报错",
+  task:"故意写出四段会出错的代码，用 try 把错误接住并打印出它的名字和说明。跑完你就见过最常撞见的四种报错长什么样。",
+  hint:"写法是 try 冒号换行缩进写会出错的那句，然后 except 错误名 as e 冒号，里面打印 e。四种分别是 NameError、TypeError、IndexError、KeyError。",
+  start:
+`# 每一段都故意让它出错，然后把错误信息打印出来
+
+# TODO: 用一个没定义过的名字，接住 NameError
+
+# TODO: 让字符串和数字相加，接住 TypeError
+
+# TODO: 取列表里不存在的下标，接住 IndexError
+
+# TODO: 取字典里不存在的键，接住 KeyError`,
+  sol:
+`try:
+    print(nihao)
+except NameError as e:
+    print("NameError:", e)
+
+try:
+    print("分数" + 86)
+except TypeError as e:
+    print("TypeError:", e)
+
+try:
+    nums = [1, 2, 3]
+    print(nums[5])
+except IndexError as e:
+    print("IndexError:", e)
+
+try:
+    person = {"name": "小明"}
+    print(person["phone"])
+except KeyError as e:
+    print("KeyError:", e)`,
+  exp:"四行输出分别对应四种错误。以后程序报错时，先看最后一行的错误名，就能大致知道问题出在哪一类。"}],
+
+1:[{tag:"练习 1.1",title:"单位换算器",
+  task:"输入身高厘米和体重公斤，换算成英寸和磅，再算出 BMI。所有结果保留一位小数。",
+  hint:"一英寸是 2.54 厘米，一公斤约 2.2046 磅。BMI 等于体重公斤除以身高米的平方，注意先把厘米除以 100。保留一位小数用格式化写法冒号点一 f。",
+  start:
+`cm = 175.5
+kg = 62.3
+
+# TODO: 换算成英寸
+# TODO: 换算成磅
+# TODO: 算 BMI，注意身高要先从厘米转成米
+# TODO: 用 f 打头的格式化写法打印三行，都保留一位小数`,
+  sol:
+`cm = 175.5
+kg = 62.3
+
+inch = cm / 2.54
+pound = kg * 2.2046
+bmi = kg / (cm / 100) ** 2
+
+print(f"身高 {cm} 厘米 = {inch:.1f} 英寸")
+print(f"体重 {kg} 公斤 = {pound:.1f} 磅")
+print(f"BMI = {bmi:.1f}")`,
+  exp:"结果是 69.1 英寸、137.3 磅、BMI 20.2。不加格式化的话会是一长串小数，冒号点一 f 才好看。"},
+{tag:"练习 1.2",title:"找零钱",
+  task:"东西 37 元，顾客付了 100 元。算出该找多少钱，并拆成 50、20、10、5、1 元各几张，只打印张数大于零的面额。",
+  hint:"每种面额用整除算出张数，再用取余算出剩下的钱交给下一种面额。整除是两个斜杠，取余是百分号。",
+  start:
+`price = 37
+paid = 100
+
+# TODO: 算出应找的钱
+# TODO: 对 50 20 10 5 1 每种面额，算出张数和剩余
+# TODO: 张数大于 0 才打印`,
+  sol:
+`price = 37
+paid = 100
+change = paid - price
+print(f"应找 {change} 元")
+
+for value in (50, 20, 10, 5, 1):
+    n = change // value
+    if n > 0:
+        print(f"  {value} 元 x {n}")
+    change = change % value`,
+  exp:"应找 63 元，拆成 50 一张、10 一张、1 三张。整除拿张数、取余拿剩余，是拆分问题的常用套路。"}],
+
+2:[{tag:"练习 2.1",title:"统计一句话里的字",
+  task:"给一句英文，切成单词列表，找出最长的单词，再统计每个字母出现几次，报出最多的三个。",
+  hint:"split 可以按空格切开成列表。max 配 key 等于 len 能找最长。统计次数用字典，配合 get 取默认值 0。排序用 sorted 配 key。",
+  start:
+`text = "hello python world"
+
+# TODO: 切成单词列表并打印
+# TODO: 找出最长的单词
+# TODO: 用字典统计每个字母出现次数，空格不算
+# TODO: 按次数从多到少排序，打印前三个`,
+  sol:
+`text = "hello python world"
+
+words = text.split()
+print("单词列表：", words)
+print("最长的词：", max(words, key=len))
+
+counts = {}
+for ch in text.replace(" ", ""):
+    counts[ch] = counts.get(ch, 0) + 1
+
+top = sorted(counts.items(), key=lambda kv: -kv[1])[:3]
+print("出现最多的三个字母：", top)`,
+  exp:"最长的词是 python，出现最多的是 l 和 o 各三次。counts.get(ch, 0) 是关键，键还不存在时返回 0 而不是报 KeyError。"},
+{tag:"练习 2.2",title:"图书清单",
+  task:"用列表套字典存三本书的书名、价格、库存。算出库存总价值，逐本打印并标出有货还是缺货，最后列出价格低于 40 的书名。",
+  hint:"总价值用每本的价格乘库存再加起来。判断有货用库存是否大于 0。挑出书名可以用列表推导式加 if 筛选。",
+  start:
+`books = [
+    {"title": "小王子", "price": 28, "stock": 3},
+    {"title": "活着", "price": 35, "stock": 0},
+    {"title": "三体", "price": 52, "stock": 7},
+]
+
+# TODO: 算库存总价值并打印
+# TODO: 逐本打印书名、价格、有货或缺货
+# TODO: 用列表推导式挑出价格低于 40 的书名`,
+  sol:
+`books = [
+    {"title": "小王子", "price": 28, "stock": 3},
+    {"title": "活着", "price": 35, "stock": 0},
+    {"title": "三体", "price": 52, "stock": 7},
+]
+
+total = 0
+for b in books:
+    total = total + b["price"] * b["stock"]
+print(f"库存总价值 {total} 元")
+
+for b in books:
+    state = "有货" if b["stock"] > 0 else "缺货"
+    print("  " + b["title"] + "  " + str(b["price"]) + " 元  " + state)
+
+cheap = [b["title"] for b in books if b["price"] < 40]
+print("低于 40 元的：", cheap)`,
+  exp:"总价值 448 元。列表套字典是最常见的数据结构，先按下标取到某本书，再按键取它的某项信息。"}],
+
+3:[{tag:"练习 3.1",title:"打印乘法表",
+  task:"打印一个四行的乘法表，第一行一个式子，第二行两个，以此类推，每个式子形如 2x3=6。",
+  hint:"用两层循环，外层控制行数，内层从 1 到当前行号。同一行的式子先拼成一个字符串再一次打印，别每个式子都换行。",
+  start:
+`# TODO: 外层循环 1 到 4 控制行
+# TODO: 内层循环拼出这一行的所有式子
+# TODO: 每行拼完打印一次`,
+  sol:
+`for i in range(1, 5):
+    line = ""
+    for j in range(1, i + 1):
+        line = line + f"{j}x{i}={i*j}  "
+    print(line)`,
+  exp:"输出一个左下三角。关键是内层的 range(1, i+1) 跟着外层的 i 变，所以每行式子数量递增。"},
+{tag:"练习 3.2",title:"筛出质数",
+  task:"找出 50 以内所有的质数并打印，最后报出一共几个。质数是只能被 1 和自己整除的数，从 2 开始算。",
+  hint:"对每个数从 2 试除到它的平方根，只要能被整除就不是质数，可以直接 break 跳出。用一个布尔变量记录判断结果。",
+  start:
+`primes = []
+
+# TODO: 遍历 2 到 49
+# TODO: 对每个数试除，判断是不是质数
+# TODO: 是质数就收进 primes，最后打印列表和个数`,
+  sol:
+`primes = []
+
+for n in range(2, 50):
+    is_prime = True
+    for d in range(2, int(n ** 0.5) + 1):
+        if n % d == 0:
+            is_prime = False
+            break
+    if is_prime:
+        primes.append(n)
+
+print("50 以内的质数：", primes)
+print("一共", len(primes), "个")`,
+  exp:"一共 15 个。只试除到平方根就够了，因为更大的因数必然配一个更小的，那个更小的早就试过了。break 让判断出结果就立刻停。"}],
+
+4:[{tag:"练习 4.1",title:"成绩统计函数组",
+  task:"写三个函数：算平均分、按分数给等级、生成一个人的成绩小结。然后用它们处理三个人的成绩。",
+  hint:"每个函数只做一件事，用 return 把结果交出去而不是直接打印。生成小结的函数内部调用前两个。遍历字典用 items 一次拿到名字和分数。",
+  start:
+`data = {"小明": [86, 92, 78], "小红": [95, 88, 91], "小刚": [55, 61, 48]}
+
+# TODO: 写 average(nums) 返回平均分
+# TODO: 写 level_of(score) 返回优秀 良好 及格 不及格
+# TODO: 写 report(name, scores) 返回一行小结字符串
+# TODO: 遍历 data，打印每个人的小结`,
+  sol:
+`def average(nums):
+    """算平均分"""
+    return sum(nums) / len(nums)
+
+def level_of(score):
+    """按分数给等级"""
+    if score >= 90:
+        return "优秀"
+    if score >= 80:
+        return "良好"
+    if score >= 60:
+        return "及格"
+    return "不及格"
+
+def report(name, scores):
+    """生成一个人的成绩小结"""
+    avg = average(scores)
+    return f"{name}  平均 {avg:.1f}  {level_of(avg)}"
+
+data = {"小明": [86, 92, 78], "小红": [95, 88, 91], "小刚": [55, 61, 48]}
+for name, scores in data.items():
+    print(report(name, scores))`,
+  exp:"小明良好、小红优秀、小刚不及格。注意三个函数都用 return 而不是 print，这样结果能被别的函数继续用，report 就是这么调用前两个的。"},
+{tag:"练习 4.2",title:"密码强度检查",
+  task:"写一个函数检查密码强度，返回说明文字和是否通过两个值。规则是至少 8 位，且必须同时含字母和数字。用三个不同的密码测试它。",
+  hint:"一次返回两个值就用逗号隔开。判断字符串里有没有数字可以用 any 配合每个字符的 isdigit 方法，字母用 isalpha。",
+  start:
+`# TODO: 写 check(pwd) 返回说明和是否通过两个值
+# TODO: 规则：不足 8 位不通过；不同时含字母和数字不通过；否则通过
+# TODO: 用 abc、abcdefgh、abcd1234 三个密码分别测试并打印`,
+  sol:
+`def check(pwd):
+    """返回强度说明和是否通过"""
+    if len(pwd) < 8:
+        return "太短，至少 8 位", False
+    has_digit = any(c.isdigit() for c in pwd)
+    has_alpha = any(c.isalpha() for c in pwd)
+    if not (has_digit and has_alpha):
+        return "要同时含字母和数字", False
+    return "通过", True
+
+for pwd in ["abc", "abcdefgh", "abcd1234"]:
+    msg, ok = check(pwd)
+    print(pwd, msg, ok)`,
+  exp:"只有 abcd1234 通过。一次返回两个值、接收时也用逗号，是函数返回多项结果的常用写法，判断和说明就能一起拿到。"}],
+
+5:[{tag:"练习 5.1",title:"随机点名器",
+  task:"用 random 做一个点名器：一个班的名单，先随机抽一个人回答问题，再不重复地抽三个人分组，最后把名单打乱输出。",
+  hint:"随机抽一个用 choice，不重复抽多个用 sample，原地打乱用 shuffle。想让每次结果一样可以先 seed。",
+  start:
+`import random
+
+students = ["小明", "小红", "小刚", "小美", "小强", "小芳", "小龙", "小燕"]
+random.seed(2024)          # 固定种子，方便核对结果
+
+# TODO: 随机抽一个人回答问题
+# TODO: 不重复地抽三个人组成小组
+# TODO: 把整个名单打乱后输出`,
+  sol:
+`import random
+
+students = ["小明", "小红", "小刚", "小美", "小强", "小芳", "小龙", "小燕"]
+random.seed(2024)
+
+print("回答问题：", random.choice(students))
+print("三人小组：", random.sample(students, 3))
+
+order = students[:]        # 先复制一份，别打乱原名单
+random.shuffle(order)
+print("打乱后的顺序：", order)`,
+  exp:"choice 抽一个可能重复，sample 抽多个保证不重复，shuffle 是原地打乱所以先复制了一份。固定 seed 后每次运行结果都一样，方便核对。"},
+{tag:"练习 5.2",title:"统计中文字频",
+  task:"给一段中文，统计每个汉字出现了多少次，报出最常见的五个，并算出一共用了多少个不同的字。标点和空白不算。",
+  hint:"用 Counter 计数。判断一个字符是不是汉字，可以看它的编码是否落在常用汉字区间，或者简单地把标点和空白排除掉。",
+  start:
+`from collections import Counter
+
+text = "学而时习之不亦说乎 有朋自远方来不亦乐乎 人不知而不愠不亦君子乎"
+
+# TODO: 去掉空白，只统计汉字
+# TODO: 用 Counter 数每个字出现几次
+# TODO: 打印不同字的个数，和出现最多的五个`,
+  sol:
+`from collections import Counter
+
+text = "学而时习之不亦说乎 有朋自远方来不亦乐乎 人不知而不愠不亦君子乎"
+
+chars = [c for c in text if c.strip()]      # 去掉空格
+counter = Counter(chars)
+
+print("总字数：", len(chars))
+print("不同的字：", len(counter))
+print("出现最多的五个：")
+for ch, n in counter.most_common(5):
+    print("  " + ch + "  " + str(n) + " 次")`,
+  exp:"不 字出现五次最多，亦 和 乎 各三次。Counter 对任何可迭代对象都能计数，字符串直接传进去就是按字符数。"}],
+
+6:[{tag:"练习 6.1",title:"把成绩存成两种格式",
+  task:"把一份成绩数据分别存成 JSON 和 CSV，再各自读回来验证内容没丢。比较一下两种格式适合什么场景。",
+  hint:"JSON 用 dumps 和 loads，中文要加 ensure_ascii 等于 False。CSV 用 DictWriter 和 DictReader，注意 newline 设成空字符串、编码用 utf-8-sig。读回来的 CSV 数字是字符串。",
+  start:
+`import json, csv
+from pathlib import Path
+
+data = [
+    {"name": "小明", "chinese": 86, "math": 92},
+    {"name": "小红", "chinese": 95, "math": 88},
+]
+
+# TODO: 存成 scores.json 再读回来，打印条数
+# TODO: 存成 scores.csv 再读回来，打印条数
+# TODO: 从读回的 CSV 算出语文总分，注意类型`,
+  sol:
+`import json, csv
+from pathlib import Path
+
+data = [
+    {"name": "小明", "chinese": 86, "math": 92},
+    {"name": "小红", "chinese": 95, "math": 88},
+]
+
+Path("scores.json").write_text(
+    json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
+back = json.loads(Path("scores.json").read_text(encoding="utf-8"))
+print("JSON 读回", len(back), "条，第一条数学", back[0]["math"])
+
+with open("scores.csv", "w", encoding="utf-8-sig", newline="") as f:
+    w = csv.DictWriter(f, fieldnames=["name", "chinese", "math"])
+    w.writeheader()
+    w.writerows(data)
+
+with open("scores.csv", encoding="utf-8-sig") as f:
+    rows = list(csv.DictReader(f))
+print("CSV 读回", len(rows), "条")
+
+total = sum(int(r["chinese"]) for r in rows)
+print("语文总分", total)`,
+  exp:"语文总分 181。注意 CSV 读回来的都是字符串，不转成 int 就没法相加。JSON 保留了原本的类型，适合有嵌套的数据；CSV 是规整的表，Excel 能直接打开。"},
+{tag:"练习 6.2",title:"统计一个文件里的行数和词数",
+  task:"先写一个多行的文本文件，再读回来统计总行数、总词数、以及最长的一行。",
+  hint:"写多行可以用 writelines 或者循环 write。读的时候用 for 遍历文件对象是一行一行来的，记得用 strip 去掉行尾换行。",
+  start:
+`from pathlib import Path
+
+lines = [
+    "Python makes data work easy",
+    "Read write and analyze",
+    "Practice every day",
+]
+
+# TODO: 把这几行写进 notes.txt，每行一条
+# TODO: 读回来统计行数
+# TODO: 统计总词数，并找出最长的一行`,
+  sol:
+`from pathlib import Path
+
+lines = [
+    "Python makes data work easy",
+    "Read write and analyze",
+    "Practice every day",
+]
+
+with open("notes.txt", "w", encoding="utf-8") as f:
+    for line in lines:
+        f.write(line + "\\n")
+
+with open("notes.txt", encoding="utf-8") as f:
+    got = [line.strip() for line in f if line.strip()]
+
+print("行数：", len(got))
+words = []
+for line in got:
+    words.extend(line.split())
+print("总词数：", len(words))
+print("最长的一行：", max(got, key=len))`,
+  exp:"三行、十二个词，最长的是第一行。用 for 遍历文件是一行一行来的，strip 去掉行尾的换行符，否则统计会带上它。"}],
+
+7:[{tag:"练习 7.1",title:"安全的取值函数",
+  task:"写一个函数，从一个嵌套的字典里按多级键取值。任何一级不存在都不要报错，而是返回一个默认值。",
+  hint:"用 try 接住 KeyError 和 TypeError。逐级往下取，取不到就返回默认值。也可以每级都用 get。",
+  start:
+`data = {"user": {"name": "小明", "address": {"city": "杭州"}}}
+
+# TODO: 写 safe_get(d, keys, default=None)，keys 是一个键的列表
+# TODO: 逐级取值，任何一级取不到就返回 default
+# TODO: 分别用存在的路径和不存在的路径测试`,
+  sol:
+`def safe_get(d, keys, default=None):
+    """按多级键取值，取不到就返回默认值"""
+    cur = d
+    try:
+        for k in keys:
+            cur = cur[k]
+        return cur
+    except (KeyError, TypeError, IndexError):
+        return default
+
+data = {"user": {"name": "小明", "address": {"city": "杭州"}}}
+
+print(safe_get(data, ["user", "name"]))
+print(safe_get(data, ["user", "address", "city"]))
+print(safe_get(data, ["user", "phone"], "未填写"))
+print(safe_get(data, ["user", "name", "first"], "路径不对"))`,
+  exp:"存在的路径正常取到，不存在的返回默认值而不是崩溃。注意也接住了 TypeError，因为对字符串再取键会报这个错，而不是 KeyError。"},
+{tag:"练习 7.2",title:"带校验的成绩录入",
+  task:"写一个函数接收姓名和分数，分数不合法时用 raise 主动报错。再写一段代码批量处理若干条记录，好的收下、坏的记下原因，最后一起报告。",
+  hint:"分数不是数字用 TypeError，超出 0 到 100 用 ValueError。批量处理时用 try 接住，把出错的原因收进一个列表。",
+  start:
+`def add_score(name, score):
+    # TODO: score 不是数字就抛 TypeError
+    # TODO: score 不在 0 到 100 之间就抛 ValueError
+    # TODO: 都合法就返回一个字典
+    ...
+
+records = [("小明", 86), ("小红", 105), ("小刚", "及格"), ("小美", 92)]
+
+# TODO: 逐条处理，成功的收进 good，失败的把姓名和原因收进 bad
+# TODO: 最后打印成功几条、失败几条及原因`,
+  sol:
+`def add_score(name, score):
+    """校验并生成一条成绩记录"""
+    if not isinstance(score, (int, float)):
+        raise TypeError("分数必须是数字")
+    if not 0 <= score <= 100:
+        raise ValueError("分数要在 0 到 100 之间")
+    return {"name": name, "score": score}
+
+records = [("小明", 86), ("小红", 105), ("小刚", "及格"), ("小美", 92)]
+good, bad = [], []
+
+for name, score in records:
+    try:
+        good.append(add_score(name, score))
+    except (TypeError, ValueError) as e:
+        bad.append((name, str(e)))
+
+print("成功", len(good), "条：", [g["name"] for g in good])
+print("失败", len(bad), "条：")
+for name, why in bad:
+    print("  " + name + "  " + why)`,
+  exp:"成功两条失败两条。分开用 TypeError 和 ValueError，调用方就能按类型分别处理。批量处理时用 try 接住单条错误，不让一条坏数据毁掉整批。"}],
+
+8:[{tag:"练习 8.1",title:"用类做一个购物车",
+  task:"写一个购物车类，能加商品、删商品、算总价、按价格排序列出所有商品。用 len 能直接得到商品件数。",
+  hint:"商品可以用字典存，也可以再写一个商品类。总价是每件的单价乘数量再相加。实现 __len__ 就能用 len。",
+  start:
+`class Cart:
+    # TODO: __init__ 建一个空的商品列表
+    # TODO: add(name, price, qty) 加商品
+    # TODO: remove(name) 按名字删，删掉返回 True 否则 False
+    # TODO: total() 算总价
+    # TODO: __len__ 返回商品件数
+    ...
+
+# TODO: 建一个购物车，加三样东西，打印件数和总价，删一样再打印`,
+  sol:
+`class Cart:
+    """一个简单的购物车"""
+    def __init__(self):
+        self.items = []
+
+    def add(self, name, price, qty=1):
+        self.items.append({"name": name, "price": price, "qty": qty})
+
+    def remove(self, name):
+        for it in self.items:
+            if it["name"] == name:
+                self.items.remove(it)
+                return True
+        return False
+
+    def total(self):
+        return sum(it["price"] * it["qty"] for it in self.items)
+
+    def __len__(self):
+        return len(self.items)
+
+    def __repr__(self):
+        return "Cart(" + str(len(self.items)) + " 种商品)"
+
+cart = Cart()
+cart.add("笔记本", 12, 3)
+cart.add("钢笔", 35, 1)
+cart.add("书", 68, 2)
+
+print(cart, "件数", len(cart), "总价", cart.total())
+print("删钢笔：", cart.remove("钢笔"))
+print("删橡皮：", cart.remove("橡皮"))
+print("现在总价", cart.total())
+for it in sorted(cart.items, key=lambda x: -x["price"]):
+    print("  " + it["name"] + "  " + str(it["price"]) + " x " + str(it["qty"]))`,
+  exp:"初始总价 207，删掉钢笔后 172。实现 __len__ 让 len(cart) 能直接用，__repr__ 让打印出来是人看得懂的样子。"},
+{tag:"练习 8.2",title:"继承做两种账户",
+  task:"写一个账户基类，有存钱取钱和查余额。再派生出储蓄账户和信用账户：储蓄账户余额不足不让取，信用账户允许透支到指定额度。",
+  hint:"基类写好共同的部分，子类只重写取钱这个方法。子类要有自己的初始化时，记得先用 super 调父类的。",
+  start:
+`class Account:
+    # TODO: __init__(owner, balance=0)
+    # TODO: deposit(amount) 存钱
+    # TODO: withdraw(amount) 取钱，基类里先简单实现
+    ...
+
+# TODO: Saving 继承 Account，余额不足时拒绝并返回 False
+# TODO: Credit 继承 Account，多一个 limit 参数，允许透支到 -limit
+# TODO: 各建一个账户测试正常取款和超额取款`,
+  sol:
+`class Account:
+    """账户基类"""
+    def __init__(self, owner, balance=0):
+        self.owner = owner
+        self.balance = balance
+
+    def deposit(self, amount):
+        self.balance += amount
+        return self.balance
+
+    def withdraw(self, amount):
+        self.balance -= amount
+        return True
+
+    def __repr__(self):
+        return self.owner + " 余额 " + str(self.balance)
+
+
+class Saving(Account):
+    """储蓄账户，不许透支"""
+    def withdraw(self, amount):
+        if amount > self.balance:
+            return False
+        self.balance -= amount
+        return True
+
+
+class Credit(Account):
+    """信用账户，可以透支到 limit"""
+    def __init__(self, owner, balance=0, limit=1000):
+        super().__init__(owner, balance)
+        self.limit = limit
+
+    def withdraw(self, amount):
+        if self.balance - amount < -self.limit:
+            return False
+        self.balance -= amount
+        return True
+
+
+s = Saving("小明", 500)
+print(s, "取 300：", s.withdraw(300), s)
+print("再取 300：", s.withdraw(300), s)
+
+c = Credit("小红", 500, limit=1000)
+print(c, "取 1200：", c.withdraw(1200), c)
+print("再取 500：", c.withdraw(500), c)`,
+  exp:"储蓄账户第二次取款被拒，信用账户可以透支到负一千。两个子类只重写了 withdraw，存钱和查余额都从基类继承。Credit 有自己的初始化，所以先用 super 调了父类的。"}],
+
+9:[{tag:"练习 9.1",title:"用数组分析气温",
+  task:"一周七天三个城市的气温数据，算出每个城市的周平均、每天的最高温、全周最热的那天，以及有多少天次超过 30 度。",
+  hint:"行是城市列是天，或者反过来，想清楚 axis 该用 0 还是 1。找最大值的位置用 argmax。数满足条件的个数用比较后求和。",
+  start:
+`import numpy as np
+
+cities = np.array(["杭州", "北京", "广州"])
+# 每行一个城市，每列一天
+temps = np.array([[28, 31, 33, 30, 27, 29, 32],
+                  [24, 26, 29, 31, 28, 25, 23],
+                  [31, 33, 34, 33, 32, 30, 31]])
+
+# TODO: 每个城市的周平均，保留一位小数
+# TODO: 每天三城的最高温
+# TODO: 全周最热出现在哪个城市哪一天
+# TODO: 一共有多少天次超过 30 度`,
+  sol:
+`import numpy as np
+
+cities = np.array(["杭州", "北京", "广州"])
+temps = np.array([[28, 31, 33, 30, 27, 29, 32],
+                  [24, 26, 29, 31, 28, 25, 23],
+                  [31, 33, 34, 33, 32, 30, 31]])
+
+print("形状：", temps.shape)
+print("每城周平均：", temps.mean(axis=1).round(1))
+print("每天最高温：", temps.max(axis=0))
+
+flat = temps.argmax()                       # 拉平后最大值的位置
+row, col = flat // temps.shape[1], flat % temps.shape[1]
+print("最热：", cities[row], "第", col + 1, "天", temps[row, col], "度")
+
+print("超过 30 度的天次：", (temps > 30).sum())
+print("广州超过 30 度的天数：", (temps[2] > 30).sum())`,
+  exp:"每城周平均分别是 30.0、26.6、32.0，最热是广州第 3 天 34 度，一共 10 个天次超过 30 度。axis=1 沿列往右走得到每行也就是每城的结果，axis=0 沿行往下走得到每天的结果。"},
+{tag:"练习 9.2",title:"归一化和筛选",
+  task:"给一组考试原始分，先做归一化把它缩放到 0 到 1 之间，再筛出原始分高于平均分的那些，最后统计各分数段的人数。",
+  hint:"归一化的公式是减去最小值再除以极差。筛选用条件当下标。分段统计可以对每段写一个条件求和。",
+  start:
+`import numpy as np
+
+scores = np.array([56, 78, 92, 45, 88, 73, 61, 95, 84, 69])
+
+# TODO: 打印平均分和标准差，保留一位小数
+# TODO: 归一化到 0 到 1，保留两位小数
+# TODO: 筛出高于平均分的成绩
+# TODO: 统计 90 分以上、60 到 89、60 以下各多少人`,
+  sol:
+`import numpy as np
+
+scores = np.array([56, 78, 92, 45, 88, 73, 61, 95, 84, 69])
+
+print("平均分：", round(scores.mean(), 1))
+print("标准差：", round(scores.std(), 1))
+
+norm = (scores - scores.min()) / (scores.max() - scores.min())
+print("归一化：", norm.round(2))
+
+above = scores[scores > scores.mean()]
+print("高于平均分的：", above, "共", len(above), "人")
+
+print("90 分以上：", (scores >= 90).sum(), "人")
+print("60 到 89：", ((scores >= 60) & (scores < 90)).sum(), "人")
+print("60 分以下：", (scores < 60).sum(), "人")`,
+  exp:"平均 74.1，归一化后最低分变成 0 最高分变成 1。分段统计时组合条件要用 & 并给每个条件加括号，用 and 会报错。"}],
+
+10:[{tag:"练习 10.1",title:"员工表分析",
+  task:"一张员工表，包含部门、姓名、薪资、入职年份。算出各部门人数和平均薪资，找出薪资最高的人，再筛出入职三年以上的员工。",
+  hint:"分组统计用 groupby 加 agg 一次算多个。找最大值所在行用 idxmax 配 loc。筛选用条件。",
+  start:
+`import pandas as pd
+
+df = pd.DataFrame({
+    "dept":   ["技术", "技术", "销售", "销售", "技术", "人事"],
+    "name":   ["小明", "小红", "小刚", "小美", "小强", "小芳"],
+    "salary": [15000, 18000, 12000, 13500, 22000, 9000],
+    "year":   [2021, 2019, 2022, 2020, 2018, 2023],
+})
+
+# TODO: 打印各部门人数
+# TODO: 各部门平均薪资，保留整数
+# TODO: 薪资最高的那个人的完整信息
+# TODO: 筛出 2021 年及以前入职的员工`,
+  sol:
+`import pandas as pd
+
+df = pd.DataFrame({
+    "dept":   ["技术", "技术", "销售", "销售", "技术", "人事"],
+    "name":   ["小明", "小红", "小刚", "小美", "小强", "小芳"],
+    "salary": [15000, 18000, 12000, 13500, 22000, 9000],
+    "year":   [2021, 2019, 2022, 2020, 2018, 2023],
+})
+
+print("各部门人数：")
+print(df.groupby("dept").size())
+
+print("\\n各部门平均薪资：")
+print(df.groupby("dept")["salary"].mean().round(0))
+
+print("\\n薪资最高：")
+print(df.loc[df["salary"].idxmax()])
+
+print("\\n2021 年及以前入职：")
+old = df[df["year"] <= 2021]
+print(old[["name", "dept", "year"]])
+print("共", len(old), "人")`,
+  exp:"技术部三人平均 18333，薪资最高的是小强 22000，2021 年及以前入职的有四人。groupby 后面接不同的统计函数就得到不同的汇总。"},
+{tag:"练习 10.2",title:"处理有缺失的表",
+  task:"一张带缺失值的成绩表，先查清哪些列有缺失、各有几个，然后用不同策略处理：关键列缺失就丢掉行，分数缺失就填成该列平均分，最后加一列总分并排序。",
+  hint:"查缺失用 isna 加 sum。丢行用 dropna 配 subset 指定关键列。填值用 fillna。加列直接赋值。",
+  start:
+`import pandas as pd
+import numpy as np
+
+df = pd.DataFrame({
+    "name":    ["小明", "小红", None, "小美", "小强"],
+    "chinese": [86, np.nan, 75, 92, 68],
+    "math":    [92, 88, 81, np.nan, 79],
+})
+
+# TODO: 打印每列缺失个数
+# TODO: name 缺失的行直接丢掉
+# TODO: 两个分数列的缺失用该列平均分填上
+# TODO: 加一列 total，按 total 从高到低排序输出`,
+  sol:
+`import pandas as pd
+import numpy as np
+
+df = pd.DataFrame({
+    "name":    ["小明", "小红", None, "小美", "小强"],
+    "chinese": [86, np.nan, 75, 92, 68],
+    "math":    [92, 88, 81, np.nan, 79],
+})
+
+print("每列缺失个数：")
+print(df.isna().sum())
+
+df = df.dropna(subset=["name"])          # 姓名缺失的直接丢
+print("\\n丢掉姓名缺失后还剩", len(df), "行")
+
+for col in ["chinese", "math"]:
+    df[col] = df[col].fillna(df[col].mean())
+
+df["total"] = df["chinese"] + df["math"]
+df = df.sort_values("total", ascending=False)
+print("\\n处理后：")
+print(df.round(1))`,
+  exp:"第三行姓名缺失被丢掉，剩下四行的分数缺失用平均分补上。关键列缺失丢行、数值列缺失填平均，是最常见的两种处理策略。"}],
+
+11:[{tag:"练习 11.1",title:"图书馆借阅分析",
+  task:"造一份借阅流水并掺进几条坏记录，然后走完整流程：读取、检查、清洗、分组分析，最后报出最受欢迎的类别和最忙的月份。",
+  hint:"照着讲义那五步做。造数据用 random 并固定种子。清洗时把缺失和不合理的值去掉，记得打印清洗前后条数。",
+  start:
+`import random
+import pandas as pd
+
+random.seed(7)
+cats = ["文学", "科技", "历史", "艺术"]
+rows = []
+for i in range(200):
+    rows.append({"id": i + 1,
+                 "month": random.randint(1, 12),
+                 "category": random.choice(cats),
+                 "days": random.randint(1, 60)})
+rows[5]["days"] = -3          # 坏记录
+rows[20]["category"] = ""     # 坏记录
+
+df = pd.DataFrame(rows)
+
+# TODO: 打印形状和每列缺失情况，看看 days 的摘要
+# TODO: 清洗，去掉 category 为空的和 days 不为正的，打印清洗前后条数
+# TODO: 各类别的借阅次数和平均借阅天数
+# TODO: 哪个月借得最多`,
+  sol:
+`import random
+import pandas as pd
+
+random.seed(7)
+cats = ["文学", "科技", "历史", "艺术"]
+rows = []
+for i in range(200):
+    rows.append({"id": i + 1,
+                 "month": random.randint(1, 12),
+                 "category": random.choice(cats),
+                 "days": random.randint(1, 60)})
+rows[5]["days"] = -3
+rows[20]["category"] = ""
+
+df = pd.DataFrame(rows)
+print("形状：", df.shape)
+print("days 摘要：")
+print(df["days"].describe().round(1))
+
+before = len(df)
+df = df[df["category"] != ""]
+df = df[df["days"] > 0]
+print("清洗前", before, "条，清洗后", len(df), "条，丢掉", before - len(df), "条")
+
+print("\\n各类别借阅次数：")
+print(df.groupby("category").size().sort_values(ascending=False))
+
+print("\\n各类别平均借阅天数：")
+print(df.groupby("category")["days"].mean().round(1))
+
+by_month = df.groupby("month").size()
+print("\\n借得最多的月份：", by_month.idxmax(), "月，", by_month.max(), "次")`,
+  exp:"清洗掉两条坏记录后剩 198 条。流程和讲义里的项目一样：先看清数据有什么毛病，清洗时留痕，再分组分析。换成任何别的数据这套都能用。"},
+{tag:"练习 11.2",title:"把分析结果存成报告",
+  task:"接着上一题，把分析结果写成一份文本报告存到文件，同时把清洗后的数据存成 CSV，最后读回报告确认写成功了。",
+  hint:"报告可以先拼成一个字符串列表再一起写入。存 CSV 用 to_csv 记得 index 设 False、编码 utf-8-sig。",
+  start:
+`import random
+import pandas as pd
+from pathlib import Path
+
+random.seed(7)
+cats = ["文学", "科技", "历史", "艺术"]
+rows = [{"id": i + 1, "month": random.randint(1, 12),
+         "category": random.choice(cats), "days": random.randint(1, 60)}
+        for i in range(200)]
+df = pd.DataFrame(rows)
+
+# TODO: 算出总借阅次数、各类别次数、平均借阅天数
+# TODO: 把这些结论拼成几行文字，写进 report.txt
+# TODO: 把数据存成 clean.csv
+# TODO: 读回 report.txt 打印出来确认`,
+  sol:
+`import random
+import pandas as pd
+from pathlib import Path
+
+random.seed(7)
+cats = ["文学", "科技", "历史", "艺术"]
+rows = [{"id": i + 1, "month": random.randint(1, 12),
+         "category": random.choice(cats), "days": random.randint(1, 60)}
+        for i in range(200)]
+df = pd.DataFrame(rows)
+
+by_cat = df.groupby("category").size().sort_values(ascending=False)
+lines = []
+lines.append("借阅分析报告")
+lines.append("=" * 24)
+lines.append("总借阅次数：" + str(len(df)))
+lines.append("平均借阅天数：" + str(round(df["days"].mean(), 1)))
+lines.append("最受欢迎的类别：" + by_cat.index[0] + "，" + str(by_cat.iloc[0]) + " 次")
+lines.append("")
+lines.append("各类别明细：")
+for cat, n in by_cat.items():
+    lines.append("  " + cat + "  " + str(n) + " 次")
+
+Path("report.txt").write_text("\\n".join(lines), encoding="utf-8")
+df.to_csv("clean.csv", index=False, encoding="utf-8-sig")
+print("已写出 report.txt 和 clean.csv")
+
+print()
+print(Path("report.txt").read_text(encoding="utf-8"))`,
+  exp:"报告存成文本、数据存成 CSV，都是实际项目的收尾动作。to_csv 要写 index 等于 False，否则会多出一列没用的行号；编码用 utf-8-sig 是为了 Excel 打开不乱码。"}]
+
+};
+
+function pad(p, i){ return PAGE_COUNT[p]>=10 ? String(i).padStart(2,"0") : String(i); }
+function escapeHtml(s){return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
+
+let LECTURE = null, SNIPS = [];
+let knowMode = localStorage.getItem("knowMode") || "web";
+function setKnowMode(m){ knowMode = m; localStorage.setItem("knowMode", m); renderKnow(); }
+function webReady(){ return LECTURE && LECTURE[part] && LECTURE[part].sections.length; }
+function toggleSec(h){ h.parentNode.classList.toggle("off"); }
+function openSec(el){ if(el) el.classList.remove("off"); }
+function snipToLab(i){
+  const code = SNIPS[i];
+  setView("lab");
+  setTimeout(function(){
+    const box = document.getElementById("ex-demo");
+    const ta = box && box.querySelector(".cells textarea");
+    if(!ta) return;
+    box.style.display = "block";
+    ta.value = code; onEdit(ta.id);
+    box.scrollIntoView({behavior:"smooth", block:"start"});
+    runAll("ex-demo");
+  }, 60);
+}
+function renderKnow(){
+  const mode = webReady() ? knowMode : "pdf";
+  const sw = webReady()
+    ? `<span class="modesw"><button class="${mode==="web"?"on":""}" onclick="setKnowMode('web')">网页</button>`
+      + `<button class="${mode==="pdf"?"on":""}" onclick="setKnowMode('pdf')">PDF</button></span>`
+    : "";
+  document.getElementById("know-title").innerHTML =
+    "第" + PART_NAMES[part] + sw +
+    ` <a class="dl" href="pdf/${PDFS[part]}" download>下载本章 PDF</a>` +
+    ` <a class="dl" href="pdf/Python入门动手实践_全12章.pdf" download>下载全书</a>`;
+  let h = "";
+  if(mode === "web"){
+    SNIPS = [];
+    h = LECTURE[part].sections.map(function(s, k){
+      const body = Lecture.render(s.body, function(code, lang){
+        const pre = `<pre class="lec-code"><code>${Lecture.esc(code)}</code></pre>`;
+        if(lang !== "python") return pre;      // 不带语言标记的是运行结果和命令行，不能拿去跑
+        const i = SNIPS.push(code) - 1;
+        return `<div class="lec-codewrap">${pre}`
+             + `<button class="runsnip" onclick="snipToLab(${i})">在实战里跑</button></div>`;
+      });
+      return `<section class="lecsec" id="lec-${part}-${k}">`
+           + `<div class="lecsec-h" onclick="toggleSec(this)"><span class="caret"></span>${Lecture.esc(s.h)}</div>`
+           + `<div class="lecsec-b">${body}</div></section>`;
+    }).join("");
+  }else{
+    for(let i=1;i<=PAGE_COUNT[part];i++)
+      h += `<div class="page"><img loading="lazy" src="pages/p${part}-${pad(part,i)}.png?${VER}" alt="第${part}部分 第${i}页"><div class="cap">${part} · ${i} / ${PAGE_COUNT[part]}</div></div>`;
+  }
+  document.getElementById("know-pages").innerHTML = h;
+}
+function renderSummary(){
+  let rows = SUMMARY.map(r=>`<tr><td>${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td></tr>`).join("");
+  document.getElementById("lab-summary").innerHTML =
+    `<summary>实战总览　讲义演示与本站练习对照</summary>
+     <table><thead><tr><th>部分</th><th>讲义里的实战</th><th>本站练习</th></tr></thead>
+     <tbody>${rows}</tbody></table>`;
+}
+const KW = new Set(["def","class","return","if","elif","else","for","while","in","not","and","or","is","import","from","as","with","try","except","finally","lambda","yield","pass","break","continue","global","nonlocal","del","raise","assert","None","True","False","async","await"]);
+const BI = new Set(["print","range","len","super","self","torch","nn","F","int","float","str","list","dict","set","tuple","sum","min","max","open","enumerate","zip","sorted","round"]);
+function highlight(code){
+  let e = code.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+  return e.replace(/(#[^\n]*)|("""[\s\S]*?"""|'''[\s\S]*?'''|"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*')|(\b\d+\.?\d*\b)|([A-Za-z_]\w*)/g,
+    function(m, com, str, num, word){
+      if(com) return '<span class="ccm">'+com+'</span>';
+      if(str) return '<span class="cst">'+str+'</span>';
+      if(num) return '<span class="cnu">'+num+'</span>';
+      if(word){
+        if(KW.has(word)) return '<span class="ckw">'+word+'</span>';
+        if(BI.has(word)) return '<span class="cbi">'+word+'</span>';
+        return word;
+      }
+      return m;
+    });
+}
+function onEdit(id){ setTimeout(function(){syncStdin(id);},0);
+  const ta=document.getElementById(id), hl=document.getElementById("hl-"+id);
+  hl.innerHTML = highlight(ta.value) + "\n";
+  hl.scrollTop = ta.scrollTop; hl.scrollLeft = ta.scrollLeft;
+}
+function syncScroll(id){
+  const ta=document.getElementById(id), hl=document.getElementById("hl-"+id);
+  hl.scrollTop = ta.scrollTop; hl.scrollLeft = ta.scrollLeft;
+}
+function keyHandler(ev, cid){
+  if(ev.key==="Tab"){
+    ev.preventDefault();
+    const t=ev.target, s=t.selectionStart, en=t.selectionEnd;
+    t.value=t.value.slice(0,s)+"    "+t.value.slice(en);
+    t.selectionStart=t.selectionEnd=s+4; onEdit(cid);
+  } else if(ev.key==="Enter" && (ev.ctrlKey||ev.metaKey)){
+    ev.preventDefault(); runCell(cid);                 // Ctrl/Cmd+Enter：运行本单元
+  } else if(ev.key==="Enter" && ev.shiftKey){
+    ev.preventDefault(); runCell(cid);                 // Shift+Enter：运行并跳到下一单元
+    const cells=document.getElementById("wrap-"+cid).closest(".cells");
+    const tas=[...cells.querySelectorAll("textarea")];
+    const idx=tas.findIndex(t=>t.id===cid);
+    if(idx<tas.length-1) tas[idx+1].focus();
+    else addCell(cells.closest(".ex").id);             // 已是最后一个就新建一个
+  }
+}
+let EDFS=14;
+function setFont(d){ EDFS=Math.max(10,Math.min(24,EDFS+d)); document.documentElement.style.setProperty("--edfs", EDFS+"px"); }
+let CID=0;
+function cellHTML(cid, code){
+  return `<div class="cell" id="wrap-${cid}">
+      <div class="gutter"><button class="play" title="运行到这里" onclick="runCell('${cid}')">▶</button><span>In</span><button class="delc" title="删除本单元" onclick="delCell('${cid}')">×</button></div>
+      <div class="edwrap">
+        <pre class="hl" id="hl-${cid}"></pre>
+        <textarea class="editor" id="${cid}" spellcheck="false" oninput="onEdit('${cid}')" onscroll="syncScroll('${cid}')" onkeydown="keyHandler(event,'${cid}')">${escapeHtml(code)}</textarea>
+      </div>
+    </div>
+    <div class="cell out" id="outcell-${cid}" style="display:none">
+      <div class="gutter"><span class="outp">Out</span></div>
+      <div style="flex:1;min-width:0"><pre class="output" id="out-${cid}"></pre><div class="figs" id="figs-${cid}"></div></div>
+    </div>`;
+}
+function renderLab(){
+  document.getElementById("lab-title").textContent = "第" + PART_NAMES[part];
+  let h = "";
+  const list = LAB[part] || [];
+  if(list.length===0){
+    document.getElementById("lab-body").innerHTML = '<p class="lead">本章以讲解为主，没有配套练习。可以到相邻章节动手，或在知识点里复习本章内容。</p>';
+    return;
+  }
+  const dcid = "c"+(CID++);
+  h += `<div class="ex" id="ex-demo" style="display:none"><div class="ex-h">示例代码</div><div class="ex-b">
+      <div class="cells">${cellHTML(dcid, "")}</div>
+      <div class="exbar"><button class="runall" onclick="runAll('ex-demo')">▶ 运行全部</button>
+        <button onclick="addCell('ex-demo')">+ 添加单元</button>
+        <span class="runstat" id="stat-ex-demo"></span></div>
+      <div class="stdinrow"><textarea spellcheck="false" placeholder="运行时输入，一行一个"></textarea></div>
+    </div></div>`;
+  list.forEach((e, k)=>{
+    const exId = `ex-${part}-${k}`, cid = "c"+(CID++);
+    h += `<div class="ex" id="${exId}"><div class="ex-h"><span class="tag">${e.tag}</span>${e.title}</div><div class="ex-b">
+      <p>${e.task}</p>
+      <details class="fold"><summary>提示</summary><div class="hint">${e.hint}</div></details>
+      <div class="cells">${cellHTML(cid, e.start)}</div>
+      <div class="exbar">
+        <button class="runall" onclick="runAll('${exId}')">▶ 运行全部</button>
+        <button onclick="addCell('${exId}')">+ 添加单元</button>
+        <button class="submit" onclick="submitEx('${exId}','${e.tag.replace("练习 ","")}')">提交检查</button>
+        <button onclick="resetEx('${exId}', ${part}, ${k})">重置</button>
+        <span class="runstat" id="stat-${exId}"></span>
+      </div>
+      <div class="stdinrow"><textarea spellcheck="false" placeholder="运行时输入，一行一个"></textarea></div>
+      <div class="judge" id="judge-${exId}" style="display:none"></div>
+      <details class="fold"><summary>参考答案，可复制到单元里运行</summary><pre><code>${escapeHtml(e.sol)}</code></pre>
+        <div class="hint"><span class="exp">预期</span>：${e.exp}</div></details>
+    </div></div>`;
+  });
+  document.getElementById("lab-body").innerHTML = h;
+  document.querySelectorAll("#lab-body .cells textarea").forEach(t=>onEdit(t.id));
+}
+function addCell(exId){
+  const cells=document.querySelector("#"+exId+" .cells"), cid="c"+(CID++);
+  cells.insertAdjacentHTML("beforeend", cellHTML(cid, ""));
+  onEdit(cid); document.getElementById(cid).focus();
+}
+function delCell(cid){
+  const cells=document.getElementById("wrap-"+cid).closest(".cells");
+  if(cells.querySelectorAll("textarea").length<=1) return;      // 至少留一个单元
+  document.getElementById("wrap-"+cid).remove();
+  const oc=document.getElementById("outcell-"+cid); if(oc) oc.remove();
+}
+function resetEx(exId, p, k){
+  const cells=document.querySelector("#"+exId+" .cells"), cid="c"+(CID++);
+  cells.innerHTML=cellHTML(cid, LAB[p][k].start); onEdit(cid);
+  document.getElementById("stat-"+exId).textContent="";
+  const jd=document.getElementById("judge-"+exId); if(jd) jd.style.display="none";
+}
+async function runCell(cid){
+  const cells=document.getElementById("wrap-"+cid).closest(".cells");
+  const tas=[...cells.querySelectorAll("textarea")];
+  const idx=tas.findIndex(t=>t.id===cid);
+  const code=tas.slice(0, idx+1).map(t=>t.value).join("\n\n");    // 连同上面的单元一起跑
+  await execute(code, cid, cells.closest(".ex"));
+}
+async function runAll(exId){
+  const cells=document.querySelector("#"+exId+" .cells");
+  const tas=[...cells.querySelectorAll("textarea")];
+  const code=tas.map(t=>t.value).join("\n\n");
+  await execute(code, tas[tas.length-1].id, document.getElementById(exId));
+}
+function syncStdin(id){
+  const ta=document.getElementById(id); if(!ta) return;
+  const ex=ta.closest(".ex"); if(!ex) return;
+  const row=ex.querySelector(".stdinrow"); if(!row) return;
+  const need=[...ex.querySelectorAll(".cells textarea")].some(t=>/\binput\s*\(/.test(t.value));
+  row.style.display = need ? "block" : "none";
+}
+function stdinOf(ex){
+  const row=ex && ex.querySelector(".stdinrow");
+  return (row && row.style.display!=="none") ? row.querySelector("textarea").value : "";
+}
+async function submitEx(exId, id){
+  const ex=document.getElementById(exId);
+  const code=[...ex.querySelectorAll(".cells textarea")].map(t=>t.value).join("\n\n");
+  const box=document.getElementById("judge-"+exId);
+  const btns=ex.querySelectorAll(".submit,.runall,.play");
+  box.style.display="block"; box.className="judge"; box.innerHTML="正在检查…";
+  btns.forEach(b=>b.disabled=true);
+  try{
+    const j=await Runner.check(code, id);
+    if(j.ok===null||j.ok===undefined){ box.innerHTML=j.msg||"没法判定"; return; }
+    box.className="judge "+(j.ok?"ok":"no");
+    let h=`<div class="jtitle">${j.ok?"做对了":"还没通过"}　${j.msg}</div><ul>`;
+    for(const it of j.items) h+=`<li class="${it.pass?"y":"n"}">${it.pass?"已完成":"待完成"}　${it.desc}</li>`;
+    h+="</ul>";
+    if(!j.ok && j.output && j.output.trim()) h+=`<div class="jtitle" style="margin-top:.5rem">你的输出</div><pre style="margin:.2rem 0 0;white-space:pre-wrap">${escapeHtml(j.output.slice(0,1200))}</pre>`;
+    box.innerHTML=h;
+  }catch(err){
+    box.innerHTML="没跑起来："+err;
+  }finally{ btns.forEach(b=>b.disabled=false); }
+}
+async function execute(code, cid, ex){
+  const outcell=document.getElementById("outcell-"+cid), out=document.getElementById("out-"+cid);
+  const stat=ex.querySelector(".runstat"), btns=ex.querySelectorAll(".play,.runall");
+  const figbox=document.getElementById("figs-"+cid);
+  outcell.style.display="flex"; out.textContent="运行中";
+  if(figbox) figbox.innerHTML="";
+  stat.textContent=""; btns.forEach(b=>b.disabled=true);
+  const t0=Date.now();
+  try{
+    const j=await Runner.run(code, stdinOf(ex));
+    out.textContent=j.output||"运行结束，无输出。别忘了 print 结果。";
+    if(figbox && j.figs && j.figs.length)
+      figbox.innerHTML=j.figs.map(b=>'<img src="data:image/png;base64,'+b+'">').join("");
+  }catch(err){
+    out.textContent="没跑起来："+err;
+  }finally{
+    btns.forEach(b=>b.disabled=false); stat.textContent="耗时 "+((Date.now()-t0)/1000).toFixed(1)+" 秒";
+  }
+}
+function renderParts(){
+  let h="";
+  for(const i of TRACKS[track].parts){
+    h+=`<button class="chap ${i===part?'on':''}" onclick="setPart(${i})">${PART_NAMES[i]}</button>`;
+    if(i===part) h+=`<div class="subs">${subItems()}</div>`;
+  }
+  document.getElementById("parts").innerHTML=h;
+}
+function subItems(){
+  if(view==="know"){
+    return (SECMAP[part]||[]).map((s,i)=>`<button class="sub" onclick="gotoKnow(${i},${s[1]})">${s[0]}</button>`).join("");
+  }
+  return (LAB[part]||[]).map((e,k)=>`<button class="sub" onclick="gotoEx('ex-${part}-${k}')">${e.tag} ${e.title}</button>`).join("");
+}
+function gotoKnow(i, p){
+  if(webReady() && knowMode==="web"){
+    const el = document.getElementById("lec-"+part+"-"+i);
+    if(el){ openSec(el); el.scrollIntoView({behavior:"smooth", block:"start"}); return; }
+  }
+  gotoPage(p);
+}
+function gotoPage(p){
+  const imgs=document.querySelectorAll("#know-pages .page");
+  if(imgs[p-1]) imgs[p-1].scrollIntoView({behavior:"smooth",block:"start"});
+}
+function gotoEx(id){ const el=document.getElementById(id); if(el) el.scrollIntoView({behavior:"smooth",block:"start"}); }
+function setPart(p){ part=p; renderParts(); view==="know"?renderKnow():renderLab(); window.scrollTo({top:0,behavior:"smooth"}); }
+function setView(v){
+  view=v;
+  document.getElementById("seg-know").classList.toggle("on", v==="know");
+  document.getElementById("seg-lab").classList.toggle("on", v==="lab");
+  document.getElementById("view-know").classList.toggle("on", v==="know");
+  document.getElementById("view-lab").classList.toggle("on", v==="lab");
+  renderParts();
+  v==="know"?renderKnow():renderLab();
+  window.scrollTo({top:0,behavior:"smooth"});
+}
+function setTrack(t){
+  track=t; part=TRACKS[t].parts[0]; view="know";
+  document.getElementById("home").classList.remove("show");
+  document.getElementById("app").style.display="flex";
+  document.getElementById("brand").innerHTML='<div class="brand-mini"><img src="../assets/logo.png" alt=""><span>YF308AI实验室开放学习平台</span></div><a class="hbtn" href="../index.html">← 全部课程</a><div class="tname">Python 入门 · 动手实践</div>';
+  document.getElementById("seg-know").classList.add("on");
+  document.getElementById("seg-lab").classList.remove("on");
+  document.getElementById("view-know").classList.add("on");
+  document.getElementById("view-lab").classList.remove("on");
+  renderParts(); renderKnow(); window.scrollTo({top:0});
+}
+function showHome(){
+  track=null;
+  document.getElementById("app").style.display="none";
+  document.getElementById("home").classList.add("show");
+  window.scrollTo({top:0});
+}
+
+document.getElementById("foot").innerHTML =
+  'YF308AI实验室开放学习平台　Python 入门 · 动手实践　十二章，24 道练习。<br>'+
+  '<span id="engtag"></span>';
+renderSummary(); setTrack("py");     // 只有一门课，不再多一屏让人选
+fetch("data/lecture.json").then(r=>r.ok?r.json():null).then(function(j){
+  LECTURE = j;
+  if(track && view==="know") renderKnow();
+}).catch(function(){});
+(function(){
+  const tag=function(s){ const t=document.getElementById("engtag"); if(t) t.textContent=s; };
+  tag("正在加载 Python 运行环境");
+  Runner.boot("python").then(function(r){
+    tag(r.label);
+  }).catch(function(err){
+    tag("Python 运行环境没加载起来："+(err&&err.message||err)+"。刷新页面重试。");
+  });
+})();
+</script>
+</body>
+</html>

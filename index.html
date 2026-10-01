@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>YF308AI实验室开放学习平台</title>
+<link rel="icon" href="assets/favicon.png">
+<link rel="apple-touch-icon" href="assets/logo-180.png">
+<script src="assets/theme.js"></script>
+<style>
+:root{
+  --bg:#ffffff; --fg:#1b1b1b; --muted:#6b6b6b; --line:#e6e6e6; --card:#fafafa;
+  --brand:#30385c; --shadow:0 1px 3px rgba(0,0,0,.06),0 10px 30px rgba(0,0,0,.05);
+}
+:root[data-theme=dark]{
+  --bg:#121316; --fg:#eceded; --muted:#9a9c9f; --line:#2a2c31; --card:#191b1f;
+  --brand:#9fb0e8; --shadow:0 1px 3px rgba(0,0,0,.4),0 10px 30px rgba(0,0,0,.35);
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font-size:16px;line-height:1.75;
+  font-family:-apple-system,"Segoe UI",Roboto,"PingFang SC","Microsoft YaHei",sans-serif;
+  -webkit-font-smoothing:antialiased}
+a{color:inherit;text-decoration:none}
+.theme{position:fixed;top:16px;right:16px;width:38px;height:38px;border-radius:10px;cursor:pointer;
+  background:var(--card);border:1px solid var(--line);color:var(--muted);font-size:16px}
+.wrap{max-width:940px;margin:0 auto;padding:76px 24px 60px}
+.head{display:flex;flex-direction:column;align-items:center;text-align:center;gap:18px;margin-bottom:52px}
+.head img{width:118px;height:118px}
+.head h1{font-size:1.9rem;font-weight:700;margin:0;letter-spacing:.02em}
+.head p{color:var(--muted);margin:0;max-width:560px}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(310px,1fr));gap:20px}
+.card{display:block;background:var(--card);border:1px solid var(--line);border-radius:16px;
+  padding:26px 28px;box-shadow:var(--shadow);transition:transform .15s,border-color .15s}
+.card:hover{transform:translateY(-3px);border-color:var(--brand)}
+.card h2{font-size:1.18rem;margin:0 0 8px;font-weight:680}
+.card p{color:var(--muted);font-size:.94rem;margin:0 0 16px;line-height:1.7}
+.meta{display:flex;flex-wrap:wrap;gap:8px}
+.pill{font-size:12px;color:var(--muted);background:var(--bg);border:1px solid var(--line);
+  border-radius:20px;padding:3px 11px}
+.status{margin-top:44px;border-top:1px solid var(--line);padding-top:26px;
+  color:var(--muted);font-size:13px;text-align:center;min-height:22px}
+.foot{margin-top:26px;color:var(--muted);font-size:12.5px;text-align:center;line-height:1.9}
+@media(max-width:620px){.wrap{padding:52px 18px 40px}.head img{width:92px;height:92px}.head h1{font-size:1.5rem}}
+</style>
+</head>
+<body>
+<button class="theme" onclick="toggleTheme()" title="切换深浅色">◐</button>
+<div class="wrap">
+  <div class="head">
+    <img src="assets/logo.png" alt="YF308AI实验室">
+    <h1>YF308AI实验室开放学习平台</h1>
+    <p>课程都带可运行的练习，写完点提交自动判对错。代码直接在浏览器里编译运行，不用装环境，也不用连校园网。</p>
+  </div>
+
+  <div class="cards">
+    <a class="card" href="python/index.html">
+      <h2>Python 入门 · 动手实践</h2>
+      <p>从装环境到做完一个数据分析项目。每章先跑通一个小程序，再讲清背后的原理。讲义可以在网页上看，也可以下载 PDF。</p>
+      <div class="meta"><span class="pill">12 章</span><span class="pill">24 道练习</span><span class="pill">自动判题</span></div>
+    </a>
+    <a class="card" href="c/index.html">
+      <h2>C 语言入门 · 动手实践</h2>
+      <p>从编译第一个程序到写完一个成绩管理系统。指针、结构体、动态内存、文件读写，每章都有能跑的例子。</p>
+      <div class="meta"><span class="pill">12 章</span><span class="pill">24 道练习</span><span class="pill">自动判题</span></div>
+    </a>
+  </div>
+
+  <div class="status" id="status">第一次运行会下载编译器和运行环境，之后走浏览器缓存。</div>
+
+  <div class="foot">
+    重庆邮电大学 通信与信息工程学院 AI 实验室<br>
+    课程内容与代码开源，欢迎提 issue 和 PR
+  </div>
+</div>
+</body>
+</html>
