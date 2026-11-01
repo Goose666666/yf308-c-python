@@ -143,12 +143,14 @@
     return engines[lang] || (engines[lang] = lang === "c" ? new CEngine() : new PyEngine());
   }
 
+  /* 判题规则：src 是课程数据文件，相对当前页面；不给就按语言取 C 课和 Python 课的 */
   const rules = {};
-  async function loadRules(lang) {
-    if (rules[lang]) return rules[lang];
-    const url = lang === "c" ? ROOT + "c/data/course.json" : ROOT + "python/data/checks.json";
+  async function loadRules(lang, src) {
+    const url = src ? new URL(src, location.href).href
+      : lang === "c" ? ROOT + "c/data/course.json" : ROOT + "python/data/checks.json";
+    if (rules[url]) return rules[url];
     const j = await (await fetch(url)).json();
-    return (rules[lang] = lang === "c" ? (j.checks || {}) : j);
+    return (rules[url] = j.checks || j);
   }
 
   const Runner = {
@@ -163,10 +165,10 @@
       const r = await engine(lang).run(code, stdin);
       return { ok: r.ok, output: r.output, figs: r.figs || [] };
     },
-    async check(code, id, lang) {
+    async check(code, id, lang, src) {
       lang = lang === "c" ? "c" : "python";
       if (!code.trim()) return { ok: null, msg: "还没有写代码。" };
-      const rule = (await loadRules(lang))[String(id)];
+      const rule = (await loadRules(lang, src))[String(id)];
       if (!rule) return { ok: null, msg: "这道题暂时没有自动判定，自己对照预期结果看看。" };
       const body = rule.append ? code + "\n\n" + rule.append : code;
       const r = await engine(lang).run(body, rule.stdin || "");

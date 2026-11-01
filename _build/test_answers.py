@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""两门课的全部参考答案在浏览器里跑一遍，判定要全过。
+"""三门课的全部参考答案在浏览器里跑一遍，判定要全过。
 
 先在仓库根目录起一个静态服务：
 
@@ -71,29 +71,41 @@ def c_answers():
     return out
 
 
+def ml_answers():
+    course = json.loads(get("/ml/data/course.json"))
+    out = []
+    for k in sorted(course["lab"], key=int):
+        for e in course["lab"][k]:
+            out.append((e["tag"].replace("练习 ", ""), e["title"], e["sol"]))
+    return out
+
+
 def main():
-    only = sys.argv[2] if len(sys.argv) > 2 else None          # 只跑 python 或 c
+    only = sys.argv[2] if len(sys.argv) > 2 else None          # 只跑 python、c 或 ml
     bad = []
     with sync_playwright() as p:
         kw = {"proxy": {"server": PROXY, "bypass": "127.0.0.1,localhost"}} if PROXY else {}
         browser = p.chromium.launch(**kw)
-        for lang, answers, page_url in (("c", c_answers(), "/c/index.html"),
-                                        ("python", python_answers(), "/python/index.html")):
-            if only and only != lang:
+        for course, answers, page_url in (("c", c_answers(), "/c/index.html"),
+                                          ("python", python_answers(), "/python/index.html"),
+                                          ("ml", ml_answers(), "/ml/index.html")):
+            if only and only != course:
                 continue
+            lang = "c" if course == "c" else "python"
+            src = "data/course.json" if course == "ml" else None
             page = browser.new_page()
             page.on("pageerror", lambda e: print("  页面错误：", e))
             page.goto(BASE + page_url)
             t0 = time.time()
             page.evaluate("l => Runner.boot(l)", lang)
-            print("%s 课 %d 道，引擎就绪用了 %.1f 秒" % (lang, len(answers), time.time() - t0))
+            print("%s 课 %d 道，引擎就绪用了 %.1f 秒" % (course, len(answers), time.time() - t0))
             for eid, title, sol in answers:
                 t0 = time.time()
-                r = page.evaluate("([c, i, l]) => Runner.check(c, i, l)", [sol, eid, lang])
+                r = page.evaluate("([c, i, l, s]) => Runner.check(c, i, l, s || undefined)", [sol, eid, lang, src])
                 ok = bool(r.get("ok"))
                 print("  %-5s %s  %s  %.1fs" % (eid, "通过" if ok else "失败", title[:20], time.time() - t0))
                 if not ok:
-                    bad.append((lang, eid))
+                    bad.append((course, eid))
                     print("      ", r.get("msg"))
                     for it in r.get("items") or []:
                         if not it["pass"]:

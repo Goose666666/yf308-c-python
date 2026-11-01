@@ -4,15 +4,31 @@
   const esc = (s) =>
     String(s == null ? "" : s).replace(/[&<>]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c]));
 
-  /* 行内标记只在非代码片段上生效，免得代码里的双等号被当成高亮 */
+  /* 公式：页面加载了 KaTeX 才认 $...$ 和 $$...$$，没加载的页面原样显示。
+     KaTeX 没下载下来时退回成等宽字体显示 TeX 原文，至少能看。 */
+  const hasMath = () => typeof window.katex !== "undefined";
+  function tex(src, display) {
+    try {
+      return window.katex.renderToString(src, { displayMode: display, throwOnError: false, strict: false });
+    } catch (e) {
+      return "<code>" + esc(src) + "</code>";
+    }
+  }
+
+  function marks(s) {
+    return esc(s)
+      .replace(/==([^=\n]+)==/g, '<mark class="lec-key">$1</mark>')
+      .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
+      .replace(/!\[([^\]]*)\]\(([^)]+)\)/g,
+        (m, alt, src) => '<img src="' + src + '" alt="' + alt + '" loading="lazy">');
+  }
+
+  /* 行内标记只在非代码、非公式片段上生效，免得代码里的双等号被当成高亮 */
   function inline(s) {
-    return esc(s).split(/(`[^`]+`)/).map((seg, i) => {
-      if (i % 2 === 1) return "<code>" + seg.slice(1, -1) + "</code>";
-      return seg
-        .replace(/==([^=\n]+)==/g, '<mark class="lec-key">$1</mark>')
-        .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
-        .replace(/!\[([^\]]*)\]\(([^)]+)\)/g,
-          (m, alt, src) => '<img src="' + src + '" alt="' + alt + '" loading="lazy">');
+    return String(s == null ? "" : s).split(/(`[^`]+`)/).map((seg, i) => {
+      if (i % 2 === 1) return "<code>" + esc(seg.slice(1, -1)) + "</code>";
+      if (!hasMath()) return marks(seg);
+      return seg.split(/(\$[^$\n]+\$)/).map((m, k) => (k % 2 === 1 ? tex(m.slice(1, -1), false) : marks(m))).join("");
     }).join("");
   }
 
@@ -53,6 +69,12 @@
       for (let bi = 0; bi < blocks.length; bi++) {
         const block = blocks[bi];
         const lines = block.split("\n").filter((l) => l.trim() !== "");
+        // 单独成段的 $$...$$ 是独立公式，可以跨行，段内不能有空行
+        const whole = block.trim();
+        if (hasMath() && whole.length > 4 && whole.startsWith("$$") && whole.endsWith("$$")) {
+          out += '<div class="lec-math">' + tex(whole.slice(2, -2).trim(), true) + "</div>";
+          continue;
+        }
         if (isTable(lines)) { out += table(lines); continue; }
         // 作者标了核心的段落，框起来
         if (/^\s*::core::/.test(lines[0])) {

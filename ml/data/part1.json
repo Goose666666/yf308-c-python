@@ -1,0 +1,110 @@
+{
+ "chapters": [
+  {
+   "n": 0,
+   "title": "认识机器学习",
+   "sections": [
+    {
+     "h": "0.1 示例",
+     "body": "鸢尾花数据集包含 150 朵鸢尾花，分属 setosa、versicolor、virginica 三个品种，每朵花都测量了花瓣的长度和宽度等尺寸，并标注了品种。取其中 112 朵花及其品种交给一个分类模型学习，其余 38 朵不参与学习，留作测试。为便于在平面上展示，模型只使用花瓣长度和花瓣宽度两个尺寸，单位为厘米。\n\n![鸢尾花分类结果](img/c0_1.png)\n\n图 0-1　鸢尾花分类结果\n\n如图 0-1 所示，横轴为花瓣长度，纵轴为花瓣宽度，每个点代表一朵花，颜色表示其真实品种。浅色小点为参与学习的 112 朵花，带黑边的大点为测试用的 38 朵花。背景的三块颜色是模型学到的划分：平面上任一位置的花，模型都会判定为该位置背景颜色对应的品种。圆圈标出的是判定错误的花。\n\n**测试结果**\n\n| 花瓣长度 | 花瓣宽度 | 真实品种 | 预测品种 |\n|---|---|---|---|\n| 5.6 | 2.1 | virginica | virginica |\n| 1.7 | 0.3 | setosa | setosa |\n| 6.1 | 1.9 | virginica | virginica |\n| 4.5 | 1.5 | versicolor | versicolor |\n| 5.1 | 1.6 | versicolor | virginica |\n| 5.1 | 1.5 | virginica | versicolor |\n\n38 朵测试花中预测正确 36 朵，准确率为 $36/38 \\approx 0.947$。\n\n**规则来自数据。** 没有人告诉模型花瓣多短属于 setosa。三个区域的边界由模型从 112 朵花中自动得出。\n\n**可分程度不同。** setosa 的花瓣明显较小，与其他两个品种相距较远，容易区分。versicolor 与 virginica 的尺寸相互重叠，边界较为曲折。\n\n**错误在边界附近。** 两朵判错的花尺寸几乎相同，品种却相反。仅凭这两个尺寸，这类样本本身无法区分，任何模型都难以判对。\n\n**评估要用新数据。** 准确率 0.947 是在模型从未见过的 38 朵花上测得的，因而能够反映模型对新数据的判定能力。"
+    },
+    {
+     "h": "0.2 定义",
+     "body": "传统程序由人编写规则，计算机执行规则。以垃圾邮件识别为例，人需要逐条写出判定条件，例如包含特定词语或发件人未知。规则数量增加后容易相互冲突，而且难以覆盖不断变化的新情况。\n\n机器学习采用另一种方式：人提供带有正确答案的样例，由算法从样例中归纳出输入与答案之间的关系。两种方式的区别如图 0-2 所示：传统编程以规则和数据为输入，输出答案；机器学习以数据和答案为输入，输出模型，模型再用于对新数据给出答案。\n\n![编程与学习](img/c0_2.svg)\n\n图 0-2　编程与学习\n\n一个常用的定义由 Tom Mitchell 给出：对于某类任务 $T$ 和性能度量 $P$，如果一个程序在 $T$ 上以 $P$ 衡量的性能随着经验 $E$ 的增加而提高，就称该程序从经验 $E$ 中学习。\n\n以 0.1 节为例：\n\n| 要素 | 含义 | 鸢尾花例子 |\n|---|---|---|\n| 任务 $T$ | 程序要完成的工作 | 根据花瓣尺寸判定品种 |\n| 经验 $E$ | 用于学习的数据 | 112 朵已标注品种的花 |\n| 性能 $P$ | 衡量完成得好坏的指标 | 在测试花上的准确率 |\n\n用数学语言表述，假设输入 $\\mathbf{x}$ 与答案 $y$ 之间存在某种未知的对应关系，我们只能观察到由它产生的 $n$ 个样例：\n\n$$\nD = \\{(\\mathbf{x}_1, y_1), (\\mathbf{x}_2, y_2), \\dots, (\\mathbf{x}_n, y_n)\\}\n$$\n\n学习的目标是依据 $D$ 构造函数 $f$，使预测值 $\\hat{y} = f(\\mathbf{x})$ 在新的输入上尽可能接近真实值 $y$。函数 $f$ 称为**模型**，$\\hat{y}$ 读作 y hat，表示预测值。\n\n机器学习已广泛用于图像识别、语音识别、机器翻译、推荐系统、医学诊断、金融风控等领域。它适用于两类情形：规则难以由人明确写出，或者规则随数据变化而需要不断更新。"
+    },
+    {
+     "h": "0.3 数据表示",
+     "body": "机器学习的数据通常整理为一张表，术语和记号如下表。\n\n| 术语 | 含义 | 记号 | 鸢尾花例子 |\n|---|---|---|---|\n| 样本 | 表中的一行，一个待预测的对象 | 第 $i$ 个样本 $\\mathbf{x}_i$ | 一朵花 |\n| 特征 | 表中的一列，描述样本的一个属性 | 第 $i$ 个样本的第 $j$ 个特征 $x_{ij}$ | 花瓣长度等 4 项尺寸 |\n| 标签 | 需要预测的答案 | $y_i$ | 品种 |\n| 特征矩阵 | 全部样本按行排列 | $X \\in \\mathbb{R}^{n \\times d}$ | 150 行 4 列 |\n| 标签向量 | 全部标签排成一列 | $\\mathbf{y}$ | 150 个品种编号 |\n\n其中 $n$ 为样本数，$d$ 为特征数。按线性代数惯例，粗体小写字母表示向量，大写字母表示矩阵。如图 0-3 所示，特征矩阵 $X$ 的第 $i$ 行是样本 $\\mathbf{x}_i$，第 $j$ 列是第 $j$ 个特征在全部样本上的取值，二者交叉处为 $x_{ij}$；标签向量 $\\mathbf{y}$ 与特征矩阵逐行对应，第 $i$ 个分量 $y_i$ 是样本 $\\mathbf{x}_i$ 的标签。\n\n![数据矩阵](img/c0_3.svg)\n\n图 0-3　数据矩阵\n\n标签在计算中用整数编码，例如鸢尾花的三个品种分别记为 0、1、2。模型只处理数值，类别名称需要另行对照。\n\n拿到数据后，首先应检查样本数、特征数、各类别的样本数量。鸢尾花三个品种各有 50 个样本，类别均衡。实际数据常常不均衡，例如在大量交易记录中欺诈交易只占极少数。"
+    },
+    {
+     "h": "0.4 数学表述",
+     "body": "大多数机器学习方法可以统一表述为一个优化问题，由三个要素构成。\n\n**模型族。** 首先规定 $f$ 的形式，只留若干待定的数。例如线性回归规定 $f(x) = wx + b$，待定的是 $w$ 和 $b$。待定的数统称为**参数**，记作 $\\theta$，模型记作 $f(\\mathbf{x}; \\theta)$。所有可能参数对应的函数构成**假设空间**：\n\n$$\n\\mathcal{F} = \\{\\, f(\\cdot\\,; \\theta) \\mid \\theta \\in \\Theta \\,\\}\n$$\n\n学习就是在假设空间中选出一个函数。若真实关系不在假设空间之内，例如真实关系是曲线而假设空间只含直线，则无论如何选择都无法得到好的模型。\n\n**损失函数。** 衡量单次预测的误差，记作 $L(y, \\hat{y})$，常用的有 0-1 损失和平方损失。\n\n| 损失 | 公式 | 适用任务 |\n|---|---|---|\n| 0-1 损失 | $L(y, \\hat{y}) = \\mathbb{I}[y \\ne \\hat{y}]$ | 分类 |\n| 平方损失 | $L(y, \\hat{y}) = (y - \\hat{y})^2$ | 回归 |\n\n其中 $\\mathbb{I}[\\cdot]$ 为指示函数，条件成立时取 1，否则取 0。损失在全部训练样本上的平均值称为**经验风险**：\n\n$$\n\\hat{R}(\\theta) = \\frac{1}{n} \\sum_{i=1}^{n} L\\big(y_i, f(\\mathbf{x}_i; \\theta)\\big)\n$$\n\n采用 0-1 损失时，经验风险即训练集上的错误率。\n\n**优化算法。** 求使经验风险最小的参数，这一原则称为**经验风险最小化**：\n\n$$\n\\hat{\\theta} = \\operatorname*{arg\\,min}_{\\theta \\in \\Theta} \\hat{R}(\\theta)\n$$\n\n$\\operatorname*{arg\\,min}$ 表示使目标取得最小值的自变量。\n\n图 0-4 以只有一个特征的回归问题为例说明这一过程。灰色直线是假设空间中的若干候选函数，蓝色直线是经验风险最小的函数 $f(\\cdot\\,;\\hat{\\theta})$。每个样本点到蓝色直线的竖直线段表示该样本上的误差，采用平方损失时，经验风险就是这些线段长度平方的平均值。经验风险最小化即在所有候选直线中选出使这一平均值最小的一条。\n\n![经验风险](img/c0_4.svg)\n\n图 0-4　经验风险\n\n求解方法取决于 $\\hat{R}$ 的性质：线性回归可以通过求导直接得到解析解，也可以用梯度下降迭代求解；决策树无法求导，采用逐层贪心划分。\n\n::core:: 模型族决定能够学到什么，损失函数决定什么是学得好，优化算法决定如何找到最优参数。任何一个模型都可以从这三个方面分析。\n\n需要注意，经验风险最小并不等于模型最好。设想一个模型把全部训练样本及其标签原样存储，预测时若遇到训练集中的样本就直接返回存储的标签。它的经验风险为零，但对训练集之外的样本毫无判断能力。"
+    },
+    {
+     "h": "0.5 泛化误差",
+     "body": "我们关心的是模型在未来新数据上的表现。为此需要一个基本假设：已有数据和未来数据都独立地来自同一个概率分布 $P$，称为**独立同分布**假设。在此假设下，模型的真实性能用它在整个分布上的期望损失衡量，称为**泛化误差**：\n\n$$\nR(f) = \\mathbb{E}_{(\\mathbf{x}, y) \\sim P}\\big[\\, L(y, f(\\mathbf{x})) \\,\\big]\n$$\n\n$\\mathbb{E}$ 表示数学期望，即按各样本出现的概率加权平均。由于分布 $P$ 未知，$R(f)$ 无法直接计算，只能用数据估计。\n\n**训练误差有偏。** 模型的参数正是依据训练样本选出的，因此训练误差系统性地低于泛化误差。0.4 节的存储式模型是一个极端例子，其训练误差为零。\n\n**测试误差无偏。** 从数据中预先留出 $m$ 个样本作为测试集，不参与训练。对模型而言，测试样本是独立的新样本，其平均损失是泛化误差的无偏估计：\n\n$$\n\\hat{R}_{\\text{test}} = \\frac{1}{m} \\sum_{i=1}^{m} L\\big(y_i, f(\\mathbf{x}_i)\\big), \\qquad \\mathbb{E}\\big[\\hat{R}_{\\text{test}}\\big] = R(f)\n$$\n\n上述过程如图 0-5 所示。训练集和测试集都是从总体分布 $P$ 中独立抽取的样本，模型 $f$ 只由训练集得到，再在测试集上计算 $\\hat{R}_{\\text{test}}$，作为泛化误差 $R(f)$ 的估计。\n\n![数据划分](img/c0_5.svg)\n\n图 0-5　数据划分\n\n**测试误差有波动。** 无偏只保证估计的平均值正确，单次估计仍有误差。采用 0-1 损失时，每个测试样本是否判对可视为一次伯努利试验，成功概率为模型的真实准确率 $p$。$m$ 次独立试验的平均值的标准差为\n\n$$\n\\mathrm{SE} = \\sqrt{\\frac{p(1-p)}{m}}\n$$\n\n例如 $p = 0.7$，$m = 54$ 时，$\\mathrm{SE} \\approx 0.062$。两个标准差约为 0.12，即准确率 0.72 与 0.62 之间的差异可能完全来自划分的随机性。由公式可知，标准误差与 $\\sqrt{m}$ 成反比，测试集扩大为 4 倍，标准误差才减半。\n\n由此得到评估模型的几条原则：\n\n1. 模型必须在未参与训练的数据上评估。\n2. 报告准确率时应同时说明测试集的规模。\n3. 测试集只能在最后使用一次。若反复依据测试集结果调整模型，模型就间接拟合了测试集，测试误差不再是无偏估计。调整模型应使用从训练数据中再划分出的验证集。\n4. 类别不均衡时应采用分层抽样，使训练集与测试集中各类别比例与总体一致。\n\n训练误差小而泛化误差大的现象称为**过拟合**，它是机器学习中最核心的问题之一。"
+    },
+    {
+     "h": "0.6 任务与流程",
+     "body": "**任务**\n\n根据训练数据是否带有标签以及标签的类型，常见任务分为分类、回归、聚类和降维。\n\n| 类别 | 任务 | 标签 | 学习目标 |\n|---|---|---|---|\n| 监督学习 | 分类 | $y \\in \\{1, \\dots, K\\}$ | $f: \\mathbb{R}^d \\to \\{1, \\dots, K\\}$ |\n| 监督学习 | 回归 | $y \\in \\mathbb{R}$ | $f: \\mathbb{R}^d \\to \\mathbb{R}$ |\n| 无监督学习 | 聚类 | 无 | 将样本划分为若干组 |\n| 无监督学习 | 降维 | 无 | 用较少的特征表示样本 |\n\n三类任务的区别如图 0-6 所示。分类模型学习不同类别之间的边界；回归模型学习一条反映输入与连续输出关系的曲线；聚类没有标签，只依据样本之间的相似程度把样本分成若干组。\n\n![三类任务](img/c0_6.svg)\n\n图 0-6　三类任务\n\n从概率角度看，监督学习估计的是条件分布 $P(y \\mid \\mathbf{x})$，即给定输入时各输出值的可能性。分类模型输出可能性最大的类别，回归模型通常输出 $y$ 的条件期望。\n\n无监督学习没有标签，研究的是 $\\mathbf{x}$ 自身的结构。以聚类为例，K 均值算法寻找 $K$ 个中心 $\\boldsymbol{\\mu}_1, \\dots, \\boldsymbol{\\mu}_K$，使每个样本到最近中心的距离平方和最小：\n\n$$\n\\min_{\\boldsymbol{\\mu}_1, \\dots, \\boldsymbol{\\mu}_K} \\; \\sum_{i=1}^{n} \\min_{c} \\lVert \\mathbf{x}_i - \\boldsymbol{\\mu}_c \\rVert^2\n$$\n\n可见没有标签时同样可以定义损失，只是衡量的对象从预测是否正确变为分组是否紧凑。\n\n此外还有强化学习，研究智能体如何通过与环境交互获得奖励来学习决策。\n\n**流程**\n\n一个机器学习项目通常按图 0-7 所示的步骤进行。划分数据得到的训练集、验证集和测试集分别用于训练模型、评估调参和最终测试；其中训练模型与评估调参通常需要反复多轮，直到验证集上的表现满足要求。\n\n![一般流程](img/c0_7.svg)\n\n图 0-7　一般流程\n\n各步骤的主要工作如下表。\n\n| 步骤 | 主要工作 |\n|---|---|\n| 定义问题 | 确定任务类型、输入输出和评价指标 |\n| 准备数据 | 收集、清洗、处理缺失值、构造特征 |\n| 划分数据 | 分出训练集、验证集和测试集 |\n| 选择模型并训练 | 选定模型族与损失，求解参数 |\n| 评估与调参 | 用验证集和交叉验证比较模型、选择超参数 |\n| 最终测试 | 在测试集上评估一次，报告结果 |\n| 部署与维护 | 投入使用，监控性能，数据变化后重新训练 |"
+    },
+    {
+     "h": "0.7 代码实现",
+     "body": "scikit-learn 简称 sklearn，是 Python 中最常用的机器学习库。示例使用其中的 K 近邻分类器，0.1 节的模型即为此分类器。\n\n**四个步骤**\n\n用 sklearn 训练和评估一个模型分为四步：\n\n```python\nfrom sklearn.datasets import load_iris\nfrom sklearn.model_selection import train_test_split\nfrom sklearn.neighbors import KNeighborsClassifier\n\n# 1. 读取数据\niris = load_iris()\nX, y = iris.data, iris.target\n\n# 2. 划分训练集和测试集\nX_train, X_test, y_train, y_test = train_test_split(\n    X, y, test_size=0.25, random_state=42, stratify=y)\n\n# 3. 创建模型并训练\nmodel = KNeighborsClassifier()\nmodel.fit(X_train, y_train)\n\n# 4. 在测试集上评估，并预测一个新样本\nprint(f\"训练集 {len(X_train)} 个样本，测试集 {len(X_test)} 个样本\")\nprint(f\"测试集准确率 {model.score(X_test, y_test):.3f}\")\nnew_flower = [[5.0, 3.4, 1.5, 0.2]]\nprint(\"新样本的预测品种\", iris.target_names[model.predict(new_flower)[0]])\n```\n\n```\n训练集 112 个样本，测试集 38 个样本\n测试集准确率 0.974\n新样本的预测品种 setosa\n```\n\n1. `load_iris` 读取数据。`X` 为 150 行 4 列的特征矩阵，`y` 为 150 个整数标签。\n2. `train_test_split` 将数据随机划分为训练集和测试集。`test_size` 为测试集所占比例，`random_state` 固定随机种子以保证结果可复现，`stratify` 指定按标签分层抽样。\n3. `fit` 在训练集上求解参数，对应 0.4 节的经验风险最小化。\n4. `score` 在测试集上计算准确率。`predict` 的输入必须是二维结构，即使只预测一个样本，也要写成两层方括号。\n\nsklearn 中所有模型都提供相同的接口：\n\n| 方法 | 作用 | 对应概念 |\n|---|---|---|\n| `fit` | 用训练数据求解参数 | 求 $\\hat{\\theta}$ |\n| `predict` | 对新样本给出预测 | 计算 $\\hat{y} = f(\\mathbf{x}; \\hat{\\theta})$ |\n| `score` | 预测并与真实标签比较 | 分类为准确率，回归为 $R^2$ |\n\n创建模型时传入的设置称为**超参数**，由人指定，不通过训练求得；训练得到的量称为**参数**。sklearn 中训练得到的属性以下划线结尾，例如 `coef_`，调用 `fit` 之前不存在。\n\n**查看数据**\n\n```python\nimport pandas as pd\nfrom sklearn.datasets import load_iris\n\niris = load_iris()\nprint(\"X 的形状\", iris.data.shape)\nprint(\"y 的形状\", iris.target.shape)\nprint(\"特征名\", iris.feature_names)\nprint(\"类别名\", iris.target_names.tolist())\n\ndf = pd.DataFrame(iris.data, columns=[\"sepal_len\", \"sepal_wid\", \"petal_len\", \"petal_wid\"])\ndf[\"label\"] = iris.target\nprint(df.head(3))\nprint(df[\"label\"].value_counts().sort_index())\n```\n\n```\nX 的形状 (150, 4)\ny 的形状 (150,)\n特征名 ['sepal length (cm)', 'sepal width (cm)', 'petal length (cm)', 'petal width (cm)']\n类别名 ['setosa', 'versicolor', 'virginica']\n   sepal_len  sepal_wid  petal_len  petal_wid  label\n0        5.1        3.5        1.4        0.2      0\n1        4.9        3.0        1.4        0.2      0\n2        4.7        3.2        1.3        0.2      0\nlabel\n0    50\n1    50\n2    50\nName: count, dtype: int64\n```\n\nsklearn 要求 `X` 为二维数组，形状为 $(n, d)$，`y` 为长度为 $n$ 的一维数组，与 0.3 节的记号一致。若只有一个特征，也必须整理为 $n$ 行 1 列，可用 `reshape` 方法转换。\n\n**更换模型**\n\n由于接口统一，更换模型只需修改创建模型的一行。在同一划分上比较 K 近邻、决策树和逻辑回归三个分类器：\n\n```python\nfrom sklearn.datasets import load_iris\nfrom sklearn.model_selection import train_test_split\nfrom sklearn.neighbors import KNeighborsClassifier\nfrom sklearn.tree import DecisionTreeClassifier\nfrom sklearn.linear_model import LogisticRegression\n\nX, y = load_iris(return_X_y=True)\nX_train, X_test, y_train, y_test = train_test_split(\n    X, y, test_size=0.25, random_state=42, stratify=y)\n\nmodels = {\n    \"K 近邻\": KNeighborsClassifier(),\n    \"决策树\": DecisionTreeClassifier(random_state=0),\n    \"逻辑回归\": LogisticRegression(max_iter=1000),\n}\nfor name, model in models.items():\n    model.fit(X_train, y_train)\n    print(f\"{name} 测试集准确率 {model.score(X_test, y_test):.3f}\")\n```\n\n```\nK 近邻 测试集准确率 0.974\n决策树 测试集准确率 0.921\n逻辑回归 测试集准确率 0.947\n```\n\n测试集只有 38 个样本，按 0.5 节的公式，$p = 0.95$ 时 $\\mathrm{SE} \\approx 0.035$。三者准确率最大相差 0.053，约为 1.5 个标准误差，不能据此判断孰优孰劣。\n\n**回归与聚类**\n\n回归和聚类使用相同的接口。聚类没有标签，`fit` 只接收 `X`。\n\n```python\nfrom sklearn.datasets import load_iris, load_diabetes\nfrom sklearn.model_selection import train_test_split\nfrom sklearn.linear_model import LinearRegression\nfrom sklearn.cluster import KMeans\n\n# 回归：预测糖尿病患者一年后的病情指标\nX, y = load_diabetes(return_X_y=True)\nX_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)\nreg = LinearRegression().fit(X_train, y_train)\nprint(\"回归 前 3 个预测\", reg.predict(X_test[:3]).round(1))\nprint(\"回归 前 3 个真实值\", y_test[:3])\n\n# 聚类：只使用花的尺寸，不使用品种，将样本分为 3 组\nX, y = load_iris(return_X_y=True)\nkm = KMeans(n_clusters=3, n_init=10, random_state=0).fit(X)\nprint(\"聚类 前 10 个样本的组号\", km.labels_[:10])\nprint(\"聚类 后 10 个样本的组号\", km.labels_[-10:])\n```\n\n```\n回归 前 3 个预测 [139.5 179.5 134. ]\n回归 前 3 个真实值 [219.  70. 202.]\n聚类 前 10 个样本的组号 [1 1 1 1 1 1 1 1 1 1]\n聚类 后 10 个样本的组号 [2 2 0 2 2 2 0 2 2 0]\n```\n\n回归的输出是连续数值，只能衡量误差大小，不能判定对错。聚类的组号仅表示样本之间的相似关系，与品种编号没有对应关系。前 10 个样本均为 setosa，被分在同一组；后 10 个样本均为 virginica，多数被分在另一组。\n\n**绘图代码**\n\n图 0-1 的绘制方法是将网格上的每一点交给模型预测，再按预测结果着色。\n\n```python\nimport numpy as np\nimport matplotlib.pyplot as plt\nfrom sklearn.datasets import load_iris\nfrom sklearn.model_selection import train_test_split\nfrom sklearn.neighbors import KNeighborsClassifier\n\niris = load_iris()\nX = iris.data[:, 2:4]          # 只使用花瓣长度和花瓣宽度\ny = iris.target\nX_train, X_test, y_train, y_test = train_test_split(\n    X, y, test_size=0.25, random_state=4)\nmodel = KNeighborsClassifier(n_neighbors=3).fit(X_train, y_train)\n\nxx, yy = np.meshgrid(np.linspace(0.5, 7.5, 200), np.linspace(-0.1, 2.8, 200))\nzz = model.predict(np.c_[xx.ravel(), yy.ravel()]).reshape(xx.shape)\ncolors = [\"#5B8DB8\", \"#D98C7A\", \"#7FB79A\"]\nplt.figure(figsize=(6.4, 4.2))\nplt.contourf(xx, yy, zz, levels=[-0.5, 0.5, 1.5, 2.5], colors=colors, alpha=0.18)\nfor c in range(3):\n    plt.scatter(*X_train[y_train == c].T, s=14, color=colors[c], alpha=0.5)\n    plt.scatter(*X_test[y_test == c].T, s=60, color=colors[c], edgecolor=\"black\",\n                label=iris.target_names[c])\npred = model.predict(X_test)\nwrong = pred != y_test\nplt.scatter(*X_test[wrong].T, s=260, facecolor=\"none\", edgecolor=\"#4D4D4D\", linewidth=1.6,\n            label=\"misclassified\")\nplt.xlabel(\"petal length (cm)\")\nplt.ylabel(\"petal width (cm)\")\nplt.legend(loc=\"lower center\", bbox_to_anchor=(0.5, 1.0), ncol=4, frameon=False, fontsize=9)\n\nprint(f\"测试集 {len(y_test)} 朵，预测正确 {np.sum(~wrong)} 朵\")\nfor i in list(range(6)) + list(np.where(wrong)[0]):\n    print(f\"花瓣长 {X_test[i][0]}，花瓣宽 {X_test[i][1]}，真实品种 {iris.target_names[y_test[i]]}，预测品种 {iris.target_names[pred[i]]}\")\n```"
+    },
+    {
+     "h": "0.8 实验验证",
+     "body": "**训练误差**\n\n不限制深度的决策树会持续细分，直到每个训练样本都被正确划分，其行为接近 0.4 节的存储式模型。比较它在训练集和测试集上的错误率：\n\n```python\nfrom sklearn.datasets import load_wine\nfrom sklearn.model_selection import train_test_split\nfrom sklearn.tree import DecisionTreeClassifier\n\nX, y = load_wine(return_X_y=True)\nX_train, X_test, y_train, y_test = train_test_split(\n    X, y, test_size=0.3, random_state=0)\n\nmodel = DecisionTreeClassifier(random_state=0).fit(X_train, y_train)\ntrain_risk = (model.predict(X_train) != y_train).mean()\ntest_risk = (model.predict(X_test) != y_test).mean()\nprint(f\"训练集错误率 {train_risk:.3f}\")\nprint(f\"测试集错误率 {test_risk:.3f}\")\n```\n\n```\n训练集错误率 0.000\n测试集错误率 0.056\n```\n\n训练集错误率为 0，测试集错误率为 0.056。训练误差给出的结论是模型完全正确，而模型在新样本上仍有约 5.6% 的错误，训练误差低估了泛化误差。\n\n**测试波动**\n\n对葡萄酒数据集做 200 次不同的随机划分，每次测试集为 54 个样本，统计测试准确率的分布，并与 0.5 节的标准误差公式比较。\n\n```python\nimport numpy as np\nfrom sklearn.datasets import load_wine\nfrom sklearn.model_selection import train_test_split\nfrom sklearn.neighbors import KNeighborsClassifier\n\nX, y = load_wine(return_X_y=True)\naccs = []\nfor seed in range(200):\n    X_train, X_test, y_train, y_test = train_test_split(\n        X, y, test_size=0.3, random_state=seed)\n    model = KNeighborsClassifier().fit(X_train, y_train)\n    accs.append(model.score(X_test, y_test))\naccs = np.array(accs)\nm = len(y_test)\np = accs.mean()\nprint(f\"测试集样本数 {m}\")\nprint(f\"200 次划分的准确率最低 {accs.min():.3f}，最高 {accs.max():.3f}\")\nprint(f\"平均准确率 {p:.3f}，实测标准差 {accs.std():.3f}\")\nprint(f\"公式给出的标准误差 {np.sqrt(p * (1 - p) / m):.3f}\")\n```\n\n```\n测试集样本数 54\n200 次划分的准确率最低 0.519，最高 0.833\n平均准确率 0.687，实测标准差 0.053\n公式给出的标准误差 0.063\n```\n\n仅因划分不同，准确率在 0.519 到 0.833 之间变化，实测标准差 0.053 与公式结果 0.063 处于同一量级。公式结果略大，是因为公式假设测试样本来自无限总体，而这里每次都是从同一批 178 个样本中不放回地抽取 54 个。此时应乘以有限总体修正系数\n\n$$\n\\sqrt{\\frac{N - m}{N - 1}} = \\sqrt{\\frac{124}{177}} \\approx 0.84\n$$\n\n修正后约为 0.053，与实测结果一致。交叉验证通过多次划分取平均，可以减小这种波动。\n\n**准确率**\n\n分类准确率等于 1 减去测试集上的 0-1 风险：\n\n$$\n\\mathrm{Acc} = \\frac{1}{m} \\sum_{i=1}^{m} \\mathbb{I}[\\hat{y}_i = y_i] = 1 - \\hat{R}_{\\text{test}}\n$$\n\n在 numpy 中，比较两个数组得到布尔数组，其平均值即为上式。\n\n```python\nimport numpy as np\nfrom sklearn.datasets import load_iris\nfrom sklearn.model_selection import train_test_split\nfrom sklearn.neighbors import KNeighborsClassifier\n\nX, y = load_iris(return_X_y=True)\nX_train, X_test, y_train, y_test = train_test_split(\n    X, y, test_size=0.25, random_state=4)\nmodel = KNeighborsClassifier().fit(X_train, y_train)\n\ny_pred = model.predict(X_test)\nprint(\"预测错误的样本位置\", np.where(y_pred != y_test)[0])\nprint(f\"按公式计算 {np.mean(y_pred == y_test):.4f}\")\nprint(f\"score 的结果 {model.score(X_test, y_test):.4f}\")\n```\n\n```\n预测错误的样本位置 [6]\n按公式计算 0.9737\nscore 的结果 0.9737\n```"
+    },
+    {
+     "h": "0.9 小结",
+     "body": "- 机器学习依据数据 $D = \\{(\\mathbf{x}_i, y_i)\\}$ 构造函数 $\\hat{y} = f(\\mathbf{x})$，使其在新数据上预测准确。\n- 数据表示为特征矩阵 $X \\in \\mathbb{R}^{n \\times d}$ 和标签向量 $\\mathbf{y}$。\n- 学习由模型族、损失函数、优化算法三个要素构成，常用原则是经验风险最小化。\n- 评价模型的标准是泛化误差。训练误差是有偏估计，测试误差是无偏估计，但存在量级为 $\\sqrt{p(1-p)/m}$ 的随机波动。\n- 测试集只能在最后使用一次，类别不均衡时应分层抽样。\n- 监督学习包括分类和回归，无监督学习包括聚类和降维。\n- sklearn 的模型统一使用 `fit`、`predict`、`score` 三个方法。"
+    }
+   ]
+  }
+ ],
+ "lab": {
+  "0": [
+   {
+    "tag": "练习 0.1",
+    "title": "葡萄酒分类器",
+    "task": "使用 `load_wine` 葡萄酒数据集训练 K 近邻分类器。划分数据时取 `test_size=0.3`、`random_state=0`，不使用分层抽样；模型使用默认设置 `KNeighborsClassifier()`。按顺序输出五行：  样本数和特征数，格式为 `样本数 178，特征数 13`； 训练集和测试集的样本数，格式为 `训练集 N1，测试集 N2`； `训练集准确率`，后接保留三位小数的数值； `测试集准确率`，后接保留三位小数的数值； `前 5 个预测`，后接测试集前 5 个样本的预测结果，先用 `tolist` 方法转换为列表。",
+    "hint": "`X.shape` 给出样本数和特征数。`score` 分别在训练集和测试集上调用一次。`predict` 返回 numpy 数组，转换为列表后输出更清晰。",
+    "start": "from sklearn.datasets import load_wine\nfrom sklearn.model_selection import train_test_split\nfrom sklearn.neighbors import KNeighborsClassifier\n\nwine = load_wine()\nX, y = wine.data, wine.target\n\n# TODO: 按 test_size=0.3、random_state=0 划分\nX_train, X_test, y_train, y_test = None, None, None, None\n\n# TODO: 输出样本数和特征数、训练集和测试集的样本数\n\n# TODO: 创建 KNeighborsClassifier() 并在训练集上训练\n\n# TODO: 输出训练集准确率和测试集准确率，保留三位小数\n\n# TODO: 输出测试集前 5 个样本的预测结果",
+    "sol": "from sklearn.datasets import load_wine\nfrom sklearn.model_selection import train_test_split\nfrom sklearn.neighbors import KNeighborsClassifier\n\nwine = load_wine()\nX, y = wine.data, wine.target\n\nX_train, X_test, y_train, y_test = train_test_split(\n    X, y, test_size=0.3, random_state=0)\nprint(f\"样本数 {X.shape[0]}，特征数 {X.shape[1]}\")\nprint(f\"训练集 {len(X_train)}，测试集 {len(X_test)}\")\n\nmodel = KNeighborsClassifier()\nmodel.fit(X_train, y_train)\nprint(f\"训练集准确率 {model.score(X_train, y_train):.3f}\")\nprint(f\"测试集准确率 {model.score(X_test, y_test):.3f}\")\nprint(\"前 5 个预测\", model.predict(X_test[:5]).tolist())",
+    "exp": "测试集 54 个样本，训练集准确率 0.790，测试集准确率 0.722，前 5 个预测为 [0, 1, 1, 0, 1]。准确率明显低于鸢尾花数据，原因是葡萄酒的 13 项指标数值范围相差很大，例如脯氨酸在 278 到 1680 之间，色调在 0.48 到 1.71 之间。对特征做标准化可以解决这一问题。"
+   },
+   {
+    "tag": "练习 0.2",
+    "title": "多次划分",
+    "task": "用多次随机划分考察测试准确率的波动。使用葡萄酒数据集和默认设置的 `KNeighborsClassifier()`，令 `random_state` 依次取 0 到 19，每次按 `test_size=0.3` 划分并训练，记录测试集准确率。全部完成后输出四行，数值均保留三位小数：  `平均准确率`，后接 20 次结果的平均值； `标准差`，后接 20 次结果的标准差，使用 `np.std`； `极差`，后接最大值与最小值之差； `公式标准误差`，后接按 $\\sqrt{p(1-p)/m}$ 计算的结果，其中 $p$ 为平均准确率，$m$ 为测试集样本数。",
+    "hint": "在循环之前创建空列表，每次循环用 `append` 添加准确率，循环结束后用 `np.array` 转换为数组再计算统计量。",
+    "start": "import numpy as np\nfrom sklearn.datasets import load_wine\nfrom sklearn.model_selection import train_test_split\nfrom sklearn.neighbors import KNeighborsClassifier\n\nX, y = load_wine(return_X_y=True)\naccs = []\nfor seed in range(20):\n    # TODO: 按 test_size=0.3、random_state=seed 划分\n    # TODO: 训练 KNeighborsClassifier()，把测试集准确率加入 accs\n    pass\n\n# TODO: 计算并输出平均准确率、标准差、极差、公式标准误差",
+    "sol": "import numpy as np\nfrom sklearn.datasets import load_wine\nfrom sklearn.model_selection import train_test_split\nfrom sklearn.neighbors import KNeighborsClassifier\n\nX, y = load_wine(return_X_y=True)\naccs = []\nfor seed in range(20):\n    X_train, X_test, y_train, y_test = train_test_split(\n        X, y, test_size=0.3, random_state=seed)\n    model = KNeighborsClassifier().fit(X_train, y_train)\n    accs.append(model.score(X_test, y_test))\n\naccs = np.array(accs)\np = accs.mean()\nm = len(y_test)\nprint(f\"平均准确率 {p:.3f}\")\nprint(f\"标准差 {accs.std():.3f}\")\nprint(f\"极差 {accs.max() - accs.min():.3f}\")\nprint(f\"公式标准误差 {np.sqrt(p * (1 - p) / m):.3f}\")",
+    "exp": "平均准确率 0.687，标准差 0.034，极差 0.111，公式标准误差 0.063。仅改变划分，准确率的最大值与最小值就相差 0.111，单次划分得到的准确率不足以可靠地评价模型。实测标准差小于公式结果，一是因为各次划分取自同一批 178 个样本，二是 20 次结果估计出的标准差本身也有较大波动。"
+   }
+  ]
+ },
+ "checks": {
+  "0.1": {
+   "items": [
+    [
+     "测试集 54 个样本",
+     "测试集 54"
+    ],
+    [
+     "训练集准确率 0.790",
+     "训练集准确率 0.790"
+    ],
+    [
+     "测试集准确率 0.722",
+     "测试集准确率 0.722"
+    ],
+    [
+     "前 5 个预测正确",
+     "前 5 个预测 [0, 1, 1, 0, 1]"
+    ]
+   ]
+  },
+  "0.2": {
+   "items": [
+    [
+     "平均准确率 0.687",
+     "平均准确率 0.687"
+    ],
+    [
+     "标准差 0.034",
+     "标准差 0.034"
+    ],
+    [
+     "极差 0.111",
+     "极差 0.111"
+    ],
+    [
+     "公式标准误差 0.063",
+     "公式标准误差 0.063"
+    ]
+   ]
+  }
+ }
+}

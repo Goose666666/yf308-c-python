@@ -71,7 +71,8 @@ async function run(msg) {
   let ok = true;
   let figs = [];
   try {
-    await py.loadPackagesFromImports(msg.code);
+    // 「Loading numpy…」这类加载提示不混进学生的输出，出错信息照常打出来
+    await py.loadPackagesFromImports(msg.code, { messageCallback: () => {}, errorCallback: (s) => push(s + "\n") });
     await py.runPythonAsync(msg.code);
     try {
       const r = await py.runPythonAsync(CAPTURE_FIGS);
